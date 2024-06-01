@@ -15,6 +15,13 @@
             "type": "debugpy",
             "request": "launch",
             "module": "scripts.BasicTest_manipulator"
-        }
+        },
+        {
+            "name": "basic humanoid",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.test"
+        },
+        
     ]
 }

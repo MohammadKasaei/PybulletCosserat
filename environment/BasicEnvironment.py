@@ -612,11 +612,7 @@ class BasicEnvironment():
         
                                 
     def get_ee_state(self):
-        # pose = p.getLinkState(self.robot_id,self._GRIP_JOINT_ID[-1],computeForwardKinematics=1)[4:6]        
         pose = p.getLinkState(self.robot_id,self._GRIP_JOINT_ID[-1])[0:2]        
-        
-        # pose = p.getLinkState(self.robot_id,self._GRIP_JOINT_ID[-1])[0:2]        
-        
         return pose[0]+self._FK_offset , pose[1]
     
 

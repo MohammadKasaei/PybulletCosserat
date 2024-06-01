@@ -9,7 +9,7 @@ import cv2
 from pybullet_env.camera.camera import Camera
 
 class SoftRobotBasicEnvironment():
-    def __init__(self,moving_base = False, p=None) -> None:
+    def __init__(self,moving_base = False, p=None,body_color = [0.5, .0, 0.6, 1], head_color= [0., 0, 0.75, 1]) -> None:
         self._simulationStepTime = 0.005
         self.vis = True
         
@@ -43,7 +43,7 @@ class SoftRobotBasicEnvironment():
             self.create_robot()
         else:
             self._robot_type = 1
-            self.create_mobile_robot()
+            self.create_mobile_robot(body_color=body_color,head_color=head_color)
 
     def _dummy_sim_step(self, n):
         for _ in range(n):
@@ -170,8 +170,8 @@ class SoftRobotBasicEnvironment():
         self._robot_line_ids = []
         self._dummy_sim_step(1)
     
-    def create_mobile_robot(self, number_of_sphere=30, color=[0.5, .0, 0.6, 1], body_base_color=[0.3, 0.3, 0.3, 1],
-                     body_base_leg_color=[0.8, 0.8, 0.8, 1]):
+    def create_mobile_robot(self, number_of_sphere=30, body_color=[0.5, .0, 0.6, 1], body_base_color=[0.3, 0.3, 0.3, 1],
+                     body_base_leg_color=[0.8, 0.8, 0.8, 1], head_color= [0., 0, 0.75, 1]):
         
         act = np.array([0, 0, 0])
         self._ode.updateAction(act)
@@ -225,10 +225,10 @@ class SoftRobotBasicEnvironment():
         self._number_of_sphere = number_of_sphere
 
         shape = self.bullet.createCollisionShape(self.bullet.GEOM_SPHERE, radius=radius)
-        visualShapeId = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius, rgbaColor=color)
+        visualShapeId = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius, rgbaColor=body_color)
 
         visualShapeId_tip = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.01, 0.002, 0.001], rgbaColor=[1, 0, 0, 1])
-        visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius + 0.005, rgbaColor=[0., 0, 0.75, 1])
+        visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius + 0.005, rgbaColor=head_color)
 
         # Load the positions
         idx = np.linspace(0, sol.shape[1] - 1, self._number_of_sphere, dtype=int)
@@ -413,7 +413,7 @@ class SoftRobotBasicEnvironment():
             camera_target = np.array(trans_target_pose[0])
             self._init_in_hand_camera(camera_pose[0],camera_target) 
         
-        self.bullet.stepSimulation()
+        # self.bullet.stepSimulation()
 
         return sol[:, -1]
     
