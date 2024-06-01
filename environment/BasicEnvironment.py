@@ -569,7 +569,7 @@ class BasicEnvironment():
         self._move_arm(traget_pose=pose)
         self._dummy_sim_step(1)
 
-    def move_arm(self,target_pos, target_ori,duration):
+    def move_arm(self,target_pos, target_ori,duration=0.001):
         p0,o0 = self.get_ee_state()
         pos, quat = self.spline_planner(p0,o0,target_pos,p.getQuaternionFromEuler(target_ori),duration)
         for i in range(len(pos)):

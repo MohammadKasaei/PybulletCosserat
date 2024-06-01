@@ -215,10 +215,10 @@ class SoftRobotBasicEnvironment():
         #     camera_target = camera_pos+np.array([0.0, 0.1, -0.05]) 
         #     self._init_camera(camera_pos,camera_target)
         
-        # if self._eyeInHand_camera_enabled:
-        #     camera_pos = np.array(self.bullet.getBasePositionAndOrientation(self._camera_id3)[0])
-        #     camera_target = camera_pos+ self.rotate_point_3d([0.0, 0.1, -0.05],[0,0,0])
-        #     self._init_in_hand_camera(camera_pos,camera_target) 
+        if self._eyeInHand_camera_enabled:
+            camera_pos = np.array([0,0,0])
+            camera_target = camera_pos+ self.rotate_point_3d([0.0, 0.1, -0.05],[0,0,0])
+            self._init_in_hand_camera(camera_pos,camera_target) 
         
         # Define the shape and color parameters (change these as needed)
         radius = 0.02
@@ -288,15 +288,7 @@ class SoftRobotBasicEnvironment():
     def in_hand_camera_capture_image(self):
         if not self._eyeInHand_camera_enabled:
             return None, None
-        
-        # ee_pose = self.get_ee_state()
-        # trans_camera_pose = self.bullet.multiplyTransforms(ee_pose[0],ee_pose[1],[-0.2,0.0,0.1],[0,0,0,1])
-        # trans_target_pose = self.bullet.multiplyTransforms(ee_pose[0],ee_pose[1],[0.09,0.0,0.],[0,0,0,1])
-        
-        
-        # camera_pos = trans_camera_pose[0]
-        # camera_target = trans_target_pose[0]
-        # self._init_in_hand_camera(camera_pos,camera_target) 
+    
         bgr, depth, _ = self.in_hand_camera.get_cam_img()
         
         ##convert BGR to RGB
@@ -342,7 +334,8 @@ class SoftRobotBasicEnvironment():
         # ori_euler = np.array([0*np.pi/3,0*np.pi/3,1*np.pi/3])
         base_ori = self.bullet.getQuaternionFromEuler(base_orin)
         
-        self._base_pos, _base_ori   = self.bullet.multiplyTransforms ([0,0,0], [0,0,0,1], base_pos, base_ori)
+        # self._base_pos, _base_ori   = self.bullet.multiplyTransforms ([0,0,0], [0,0,0,1], base_pos, base_ori)
+        self._base_pos, _base_ori   = base_pos, base_ori 
         
 
         _camera_base_pos1 = np.array(self.bullet.multiplyTransforms (self._base_pos, _base_ori, self._camera_base_pos1_relative, [0,0,0,1])[0])
@@ -372,8 +365,6 @@ class SoftRobotBasicEnvironment():
         # self.bullet.resetBasePositionAndOrientation(self._camera_id2, _camera_base_pos2 + dp, ori)
         # self.bullet.resetBasePositionAndOrientation(self._camera_id3, _camera_base_pos3 + dp, ori)
         
-       
-        
         
         idx = np.linspace(0, sol.shape[1] - 1, self._number_of_sphere, dtype=int)
         positions = [(sol[0, i], sol[2, i], sol[1, i]) for i in idx]
@@ -381,7 +372,7 @@ class SoftRobotBasicEnvironment():
         
         for i, pos in enumerate(positions):
             # self.bullet.resetBasePositionAndOrientation(self._robot_bodies[i], pos + self._base_pos, (0, 0, 0, 1))
-            pos, orin = self.bullet.multiplyTransforms (self._base_pos + _base_pos_offset, _base_ori, pos + np.array([0,0.,0]), [0,0,0,1])
+            pos, orin = self.bullet.multiplyTransforms (self._base_pos + _base_pos_offset, _base_ori, pos, [0,0,0,1])
             self.bullet.resetBasePositionAndOrientation(self._robot_bodies[i], pos , orin)
             
 
@@ -392,11 +383,10 @@ class SoftRobotBasicEnvironment():
         #     camera_target = np.array(self.bullet.multiplyTransforms (camera_pos, _camera_base_orn3, [0.0, 0.1, -0.05], [0,0,0,1])[0]) #camera_pos+np.array([0.0, 0.1, -0.05]) 
         #     self._init_camera(camera_pos,camera_target) 
 
-        _tip_ori, tip_ori_euler  = self.calculate_orientation(positions[-2], positions[-1]) # Pitch and roll are not correct
-        # tip_ori = self.bullet.getQuaternionFromEuler(ori_euler + tip_ori_euler)
-        tip_ori = self.combine_euler_angles (base_orin , tip_ori_euler)
-        tip_ori = self.bullet.getQuaternionFromEuler(tip_ori)
+        _tip_ori, tip_ori_euler  = self.calculate_orientation(positions[-3], positions[-1]) # Pitch and roll are not correct
 
+        _ , tip_ori = self.bullet.multiplyTransforms([0,0, 0], base_ori, [0,0,0], _tip_ori)
+     
         gripper_pos1 = self.rotate_point_3d([0.02,-self._grasp_width, 0], tip_ori_euler)
         gripper_pos2 = self.rotate_point_3d([0.02,self._grasp_width, 0], tip_ori_euler)
         
@@ -408,16 +398,20 @@ class SoftRobotBasicEnvironment():
                 
         self.bullet.resetBasePositionAndOrientation(self._robot_bodies[-2], gripper_pos1, tip_ori)
         self.bullet.resetBasePositionAndOrientation(self._robot_bodies[-1], gripper_pos2, tip_ori)
-        
-        self.bullet.stepSimulation()
-        
+                
         if self._eyeInHand_camera_enabled:       
-            trans_camera_pose = self.bullet.multiplyTransforms(head_pos, _base_ori,[0.,0.01,0.0],[0,0,0,1])
-            trans_target_pose = self.bullet.multiplyTransforms(head_pos, _base_ori,[0.,0.08,0.001],[0,0,0,1])
-            camera_pos    = np.array(trans_camera_pose[0])
+            object_pose = self.bullet.getBasePositionAndOrientation(self._robot_bodies[-4])
+            
+            cam_ori = np.array (self.bullet.getEulerFromQuaternion(tip_ori))
+            cam_ori [0] = 0
+            cam_ori = self.bullet.getQuaternionFromEuler(cam_ori)
+            trans_target_pose = self.bullet.multiplyTransforms(object_pose[0],tip_ori,[0.1,0.0,-0.0],[0,0,0,1])
+            camera_pose = self.bullet.multiplyTransforms(object_pose[0],tip_ori,[0.,0.0,-0.0],[0,0,0,1])
+            
+            self._set_marker(np.array(trans_target_pose[0]))
+
             camera_target = np.array(trans_target_pose[0])
-            # print (camera_target-camera_pos)
-            self._init_in_hand_camera(head_pos,camera_target) 
+            self._init_in_hand_camera(camera_pose[0],camera_target) 
         
         self.bullet.stepSimulation()
 
@@ -556,12 +550,17 @@ class SoftRobotBasicEnvironment():
             
     def _set_marker(self,pos):
         if self._marker_ID is None:
-            marker_shape = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=0.01, rgbaColor=[1, 0, 0., 0.5])
+            marker_shape = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=0.03, rgbaColor=[1, 0, 0., 0.5])
             self._marker_ID = self.bullet.createMultiBody(baseMass=0, baseCollisionShapeIndex=marker_shape,
                                                     baseVisualShapeIndex=marker_shape,
-                                                    basePosition= [pos[0],pos[2],pos[1]] + self._base_pos, baseOrientation=(0, 0, 0, 1))
+                                                    basePosition= [pos[0],pos[1],pos[2]] , baseOrientation=(0, 0, 0, 1))
+            # self._marker_ID = self.bullet.createMultiBody(baseMass=0, baseCollisionShapeIndex=marker_shape,
+            #                                         baseVisualShapeIndex=marker_shape,
+            #                                         basePosition= [pos[0],pos[2],pos[1]] + self._base_pos, baseOrientation=(0, 0, 0, 1))
         else:
-            self.bullet.resetBasePositionAndOrientation(self._marker_ID, [pos[0],pos[2],pos[1]] + self._base_pos, (0, 0, 0, 1))
+            # self.bullet.resetBasePositionAndOrientation(self._marker_ID, [pos[0],pos[2],pos[1]] + self._base_pos, (0, 0, 0, 1))
+            self.bullet.resetBasePositionAndOrientation(self._marker_ID, [pos[0],pos[1],pos[2]] , (0, 0, 0, 1))
+            
         self._dummy_sim_step(10)
          
     def wait(self, sec):
