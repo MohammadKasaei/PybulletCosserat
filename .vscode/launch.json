@@ -5,7 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "yumi test",
+            "name": "multi_segment_test soft robot",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.multi_segment_test"
+        }, 
+        {
+            "name": "softrobot test",
             "type": "debugpy",
             "request": "launch",
             "module": "scripts.yumi_test"

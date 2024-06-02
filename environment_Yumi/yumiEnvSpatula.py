@@ -204,7 +204,7 @@ class yumiEnvSpatula():
                             jointAxis, parentFramePos, parentFrameOrn)
 
             if info.type == "REVOLUTE" or info.type == "PRISMATIC" or True:  # set revolute joint to static
-                p.setJointMotorControl2(self.robot_id, info.id, p.POSITION_CONTROL, targetPosition=0, force=300)
+                p.setJointMotorControl2(self.robot_id, info.id, p.POSITION_CONTROL, targetPosition=0, force=3000)
                 if print_joint_info:
                     print (info)
                     print (jointType)                            
