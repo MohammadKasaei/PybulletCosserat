@@ -5,6 +5,19 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "yumi test",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.yumi_test"
+        },
+        {
+            "name": "Python Debugger: Current File",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "basic soft robot",
             "type": "debugpy",
             "request": "launch",
@@ -17,11 +30,10 @@
             "module": "scripts.BasicTest_manipulator"
         },
         {
-            "name": "basic humanoid",
+            "name": "basic minispot",
             "type": "debugpy",
             "request": "launch",
-            "module": "scripts.test"
+            "module": "scripts.mini_spot_test"
         },
-        
     ]
 }

@@ -9,10 +9,11 @@ import cv2
 from pybullet_env.camera.camera import Camera
 
 class SoftRobotBasicEnvironment():
-    def __init__(self,moving_base = False, p=None,body_color = [0.5, .0, 0.6, 1], head_color= [0., 0, 0.75, 1]) -> None:
+    def __init__(self,moving_base = False, p=None,body_color = [0.5, .0, 0.6, 1], head_color= [0., 0, 0.75, 1],sphere_radius=0.02,_number_of_segment=3) -> None:
         self._simulationStepTime = 0.005
         self.vis = True
-        
+        self._sphere_radius = sphere_radius 
+        self._number_of_segment = _number_of_segment 
         if p is None:
             import pybullet as p
             self.bullet = p
@@ -221,7 +222,7 @@ class SoftRobotBasicEnvironment():
             self._init_in_hand_camera(camera_pos,camera_target) 
         
         # Define the shape and color parameters (change these as needed)
-        radius = 0.02
+        radius = self._sphere_radius
         self._number_of_sphere = number_of_sphere
 
         shape = self.bullet.createCollisionShape(self.bullet.GEOM_SPHERE, radius=radius)
@@ -317,19 +318,35 @@ class SoftRobotBasicEnvironment():
         # sol = self._ode.odeStepFull()
         
         self._ode._reset_y0()
-        self._ode.updateAction(action[:3])
-        sol_1 = self._ode.odeStepFull()
+        sol = None
+        for n in range(self._number_of_segment):
+            self._ode.updateAction(action[n*3:(n+1)*3])
+            sol_n = self._ode.odeStepFull()
+            self._ode.y0 = sol_n[:,-1]        
+            
+            if sol is None:
+                sol = np.copy(sol_n)
+            else:                
+                sol = np.concatenate((sol,sol_n),axis=1)
+                
+            
+            
+            
         
-        self._ode.y0 = sol_1[:,-1]
-        self._ode.updateAction(action[3:6])    
-        sol_2 = self._ode.odeStepFull()
+        # self._ode._reset_y0()
+        # self._ode.updateAction(action[:3])
+        # sol_1 = self._ode.odeStepFull()
         
-        self._ode.y0 = sol_2[:,-1]
-        self._ode.updateAction(action[-3:])    
-        sol_3 = self._ode.odeStepFull()
+        # self._ode.y0 = sol_1[:,-1]
+        # self._ode.updateAction(action[3:6])    
+        # sol_2 = self._ode.odeStepFull()
         
-        sol_12 = np.concatenate((sol_1,sol_2),axis=1)
-        sol = np.concatenate((sol_12,sol_3),axis=1)
+        # self._ode.y0 = sol_2[:,-1]
+        # self._ode.updateAction(action[-3:])    
+        # sol_3 = self._ode.odeStepFull()
+        
+        # sol_12 = np.concatenate((sol_1,sol_2),axis=1)
+        # sol = np.concatenate((sol_12,sol_3),axis=1)
         
         # ori_euler = np.array([0*np.pi/3,0*np.pi/3,1*np.pi/3])
         base_ori = self.bullet.getQuaternionFromEuler(base_orin)

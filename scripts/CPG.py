@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 
 class CPG():
-    def __init__(self) -> None:
+    def __init__(self,Zleg = -0.18) -> None:
 
         self.gtime = 0
         self.SamplingTime=0.001
@@ -14,8 +14,8 @@ class CPG():
         self.StepY= 0.0
         self.StepTheta = 0.0
         self.SwingStepZ = 0.02
-        self.StepTime = 0.35
-        self.Zleg = -0.18
+        self.StepTime = 0.3
+        self.Zleg = Zleg 
         self.update_time_param()
         self.update_move_param()   
         self.generate_cpg(0)
