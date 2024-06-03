@@ -38,7 +38,7 @@ class SoftManipulatorEnv(gym.Env):
         self._env_id  = env_id
         
         
-        self._env = SoftRobotBasicEnvironment(moving_base=True,sphere_radius=0.02,_number_of_segment=2,gui=False if self._env_id>0 else True)
+        self._env = SoftRobotBasicEnvironment(moving_base=True,body_sphere_radius=0.02,number_of_segment=2,gui=False if self._env_id>0 else True)
         base_link_shape = self._env._pybullet.createVisualShape(self._env._pybullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
         base_link_pos, base_link_ori = self._env._pybullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
         base_link_id    = self._env._pybullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,

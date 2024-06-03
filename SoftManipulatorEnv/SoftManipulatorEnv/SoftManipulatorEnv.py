@@ -22,14 +22,14 @@ import numpy as np
 
 
 class SoftManipulatorEnv(gym.Env):
-    def __init__(self) -> None:
+    def __init__(self,gui=True) -> None:
         super(SoftManipulatorEnv, self).__init__()
 
         self.simTime = 0
-        self._env_id  = 1
+        self._gui  = gui
         
         
-        self._env = SoftRobotBasicEnvironment(moving_base=True,sphere_radius=0.02,_number_of_segment=5,gui=False if self._env_id>0 else True)
+        self._env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5,gui=self._gui)
         base_link_shape = self._env._pybullet.createVisualShape(self._env._pybullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
         base_link_pos, base_link_ori = self._env._pybullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
         base_link_id    = self._env._pybullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
@@ -38,7 +38,10 @@ class SoftManipulatorEnv(gym.Env):
         self._base_pos = np.array([0,0,0.5])
         self._base_ori = np.array([-np.pi/2,0,0])
         shape, ode_sol = self._env.move_robot_ori(action=np.array([0.0, 0.0, 0.0,
-                                                             0.0, 0.0, 0.0]),
+                                                                   0.0, 0.0, 0.0,
+                                                                   0.0, 0.0, 0.0,
+                                                                   0.0, 0.0, 0.0,
+                                                                   0.0, 0.0, 0.0]),
                                             base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
         
         
@@ -90,11 +93,11 @@ class SoftManipulatorEnv(gym.Env):
         # self.distance = np.linalg.norm(self.pos-self.posPred)
         self.distance = np.linalg.norm(self.pos-self.desired_pos)
 
-        reward = (math.exp(-(self.distance**2)/0.00001))+(0.1*math.exp(-(self.distance**2)))-0.1
+        reward = (math.exp(-(self.distance**2)/0.00001)) #+(0.1*math.exp(-(self.distance**2)))-0.1
         
         observation = self.observe()
         terminal = True
-        if self._env_id == 0:
+        if self._gui:
             print (f"rew:{reward:0.4f}")
             self._env._dummy_sim_step(1)
         
@@ -126,7 +129,7 @@ class SoftManipulatorEnv(gym.Env):
         
         
         
-        if (self._env_id == 0): #Test env
+        if (self._gui): #Test env
             self._env._set_marker(self.desired_pos)
         
             print ("reset Env 0")
@@ -151,7 +154,7 @@ def make_env(env_id, rank, seed=0):
     :param rank: (int) index of the subprocess
     """
     def _init():
-        env = SoftManipulatorEnv()
+        env = SoftManipulatorEnv(gui=False)
         #DummyVecEnv([lambda: CustomEnv()]) #gym.make(env_id)
         env.seed(seed + rank)
         return env
@@ -161,7 +164,7 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    num_cpu_core = 16
+    num_cpu_core = 1
     max_epc = 500000
     
     # from gym.envs.registration import register
@@ -191,19 +194,19 @@ if __name__ =="__main__":
     
     
         
-    # model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
+    model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
 
-    # obs = sf_env.reset()
-    # timesteps = 5000
-    # for i in range(timesteps):
-    #     action, _states = model.predict(obs, deterministic=True)
-    #     obs, reward, done, info = sf_env.step(action)
-    #     #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
-    #     #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
-    #     if done:
-    #         time.sleep(1)
+    obs = sf_env.reset()
+    timesteps = 5000
+    for i in range(timesteps):
+        action, _states = model.predict(obs, deterministic=True)
+        obs, reward, done, info = sf_env.step(action)
+        #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
+        #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
+        if done:
+            time.sleep(1)
             
-    #         obs = sf_env.reset()
-    #         time.sleep(0.1)
-    #         sf_env._env._dummy_sim_step(1)
+            obs = sf_env.reset()
+            time.sleep(0.1)
+            sf_env._env._dummy_sim_step(1)
 

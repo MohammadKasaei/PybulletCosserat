@@ -9,8 +9,8 @@ if __name__ == '__main__':
 
     env = yumiEnvSpatula()
 
-    soft_robot_left = SoftRobotBasicEnvironment(moving_base=True,p = env._bullet,sphere_radius=0.01,_number_of_segment=1)
-    soft_robot_right = SoftRobotBasicEnvironment(moving_base=True,p = env._bullet,head_color= [0,0.75,0,1], sphere_radius=0.01,_number_of_segment=1)
+    soft_robot_left = SoftRobotBasicEnvironment(moving_base=True,p = env._bullet,body_sphere_radius=0.01,number_of_segment=1)
+    soft_robot_right = SoftRobotBasicEnvironment(moving_base=True,p = env._bullet,head_color= [0,0.75,0,1], body_sphere_radius=0.01,number_of_segment=1)
     
     skin_pos = [0.4,0,-0.02]
     organ_pos = [0.4,0,-0.05]

@@ -6,7 +6,7 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    env = SoftRobotBasicEnvironment(moving_base=True,sphere_radius=0.02,_number_of_segment=5)
+    env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5)
     base_link_shape = env._pybullet.createVisualShape(env._pybullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
     base_link_pos, base_link_ori = env._pybullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
     base_link_id    = env._pybullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
