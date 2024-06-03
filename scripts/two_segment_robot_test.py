@@ -142,36 +142,36 @@ if __name__ == '__main__':
     traj_name = 'Square'
     gt = 0
     
-    # q = np.array([0.0,0.0,0,0,0,0])    
-    # # J = Jac(env._move_robot_jac,q)    
+    q = np.array([0.0,0.0,0,0,0,0])    
+    # J = Jac(env._move_robot_jac,q)    
 
-    # x0 = env.move_robot(q)[:3]+np.array([0,0,0.0])
-    # xc = env.move_robot(q)[:3]
-    # K = 1*np.diag((2.45, 2.45, 2.45))
-    # tp = time.time()
-    # t0 = tp
-    # ref = None
+    x0 = env.move_robot(q)[:3]+np.array([0,0,0.0])
+    xc = env.move_robot(q)[:3]
+    K = 1*np.diag((2.45, 2.45, 2.45))
+    tp = time.time()
+    t0 = tp
+    ref = None
     
-    # for i in range(int(tf/ts)):
-    #     t = time.time()
-    #     dt = t - tp
-    #     tp = t
+    for i in range(int(tf/ts)):
+        t = time.time()
+        dt = t - tp
+        tp = t
         
-    #     xd, xd_dot = get_ref(gt,traj_name)
+        xd, xd_dot = get_ref(gt,traj_name)
        
-    #     if ref is None:
-    #         ref = np.copy(xd)
-    #     else:
-    #         ref = np.vstack((ref, xd))
+        if ref is None:
+            ref = np.copy(xd)
+        else:
+            ref = np.vstack((ref, xd))
    
-    #     jac = Jac(env._move_robot_jac,q).T
-    #     pseudo_inverse = np.linalg.pinv(jac)
-    #     qdot = pseudo_inverse @ (xd_dot + np.squeeze((K@(xd-xc)).T))
-    #     q += (qdot * ts)
+        jac = Jac(env._move_robot_jac,q).T
+        pseudo_inverse = np.linalg.pinv(jac)
+        qdot = pseudo_inverse @ (xd_dot + np.squeeze((K@(xd-xc)).T))
+        q += (qdot * ts)
         
-    #     xc = env.move_robot(q)[:3]
-    #     gt += ts
-    #     # ee = env.move_robot(action=q)    
+        xc = env.move_robot(q)[:3]
+        gt += ts
+        # ee = env.move_robot(action=q)    
         
     sign = 1   
     env._set_marker(np.array([0.2,0,0]),radius=0.035,color=[0,1,0,1])

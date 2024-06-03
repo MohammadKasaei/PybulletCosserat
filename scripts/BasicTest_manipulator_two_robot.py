@@ -5,13 +5,15 @@ from environment.BasicEnvironment import BasicEnvironment
 from pybullet_env.BasicEnvironment import SoftRobotBasicEnvironment
 
 
+
+
 if __name__ == "__main__":
     
     env = BasicEnvironment()
     env.move_arm(target_pos= np.array([0.4,0.,0.35]), target_ori=[np.pi/2,np.pi/2,0],duration=0.01)
     env.wait(1)
-    soft_robot_1 = SoftRobotBasicEnvironment(moving_base=True,p = env._pybullet)
-    soft_robot_2 = SoftRobotBasicEnvironment(moving_base=True,p = env._pybullet,head_color=[0,0.75,0,1])
+    soft_robot_1 = SoftRobotBasicEnvironment(bullet= env._pybullet)
+    soft_robot_2 = SoftRobotBasicEnvironment(bullet= env._pybullet,head_color=[0,0.75,0,1])
      
     t = 0
     dt = 0.01

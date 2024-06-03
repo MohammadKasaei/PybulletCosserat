@@ -42,10 +42,22 @@
             "module": "scripts.new_robot_moving"
         },
         {
-            "name": "basic manipulator",
+            "name": "basic manipulator-two robots",
             "type": "debugpy",
             "request": "launch",
-            "module": "scripts.BasicTest_manipulator"
+            "module": "scripts.BasicTest_manipulator_two_robot"
+        },
+        {
+            "name": "basic manipulator-Single robots",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.BasicTest_manipulator_single"
+        },
+        {
+            "name": "basic manipulator-Single robots control",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.BasicTest_manipulator_single_control"
         },
         {
             "name": "basic minispot",

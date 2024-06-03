@@ -39,8 +39,6 @@ class SoftRobotBasicEnvironment():
             self.bullet = bullet
             
         self._marker_ID = None
-        self._pybullet = p
-        # self.plane_id = self.bullet.loadURDF('plane.urdf')
         self._ode = ODE()
         
         self._max_grasp_width = 0.01
@@ -288,6 +286,50 @@ class SoftRobotBasicEnvironment():
         self.bullet.stepSimulation()
 
         return pose_in_word_frame, sol #[:, -1]
+    
+    
+    def calc_tip_pos(self,
+                    action=np.array([0, 0, 0, 0, 0, 0, 0, 0, 0,]),
+                    base_pos = np.array([0, 0, 0.]), 
+                    base_orin = np.array([0,0,0])
+                    ):        
+      
+        if (np.shape(action)[0]<self._number_of_segment*3):
+            action = np.concatenate((np.zeros((self._number_of_segment*3)-np.shape(action)[0]),action),axis=0) 
+        
+        self._ode._reset_y0()
+        sol = None
+        for n in range(self._number_of_segment):
+            # self._ode._update_l0(self,l0)
+            self._ode.updateAction(action[n*3:(n+1)*3])
+            sol_n = self._ode.odeStepFull()
+            self._ode.y0 = sol_n[:,-1]        
+            
+            if sol is None:
+                sol = np.copy(sol_n)
+            else:                
+                sol = np.concatenate((sol,sol_n),axis=1)
+            
+        base_ori = self.bullet.getQuaternionFromEuler(base_orin)
+        self._base_pos, _base_ori   = base_pos, base_ori 
+        
+            
+        _base_pos_offset = np.array(self.bullet.multiplyTransforms ([0,0,0],[0,0,0,1],[0,-0.,0],base_ori)[0])
+
+        idx = np.linspace(0, sol.shape[1] - 1, self._number_of_sphere, dtype=int)
+        positions = [(sol[0, i], sol[2, i], sol[1, i]) for i in idx]
+        self._robot_line_ids = []                    
+        
+        pose_in_word_frame = []
+        for i, pos in enumerate(positions):
+            pos, orin = self.bullet.multiplyTransforms (self._base_pos + _base_pos_offset, _base_ori, pos, [0,0,0,1])
+            pose_in_word_frame.append(np.concatenate((np.array(pos),np.array(orin))))
+            self.bullet.resetBasePositionAndOrientation(self._robot_bodies[i], pos , orin)
+            
+
+        head_pose = self.bullet.multiplyTransforms (self._base_pos+ _base_pos_offset, _base_ori, positions[-1] + np.array([0,0.,0]), [0,0,0,1])
+        return np.array(head_pose[0]),np.array(head_pose[1])
+        
     
     def rotate_point_3d(self, point, rotation_angles):
         """
