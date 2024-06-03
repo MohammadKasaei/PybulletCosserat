@@ -31,11 +31,11 @@ import numpy as np
 
 
 class SoftManipulatorEnv(gym.Env):
-    def __init__(self) -> None:
+    def __init__(self,env_id) -> None:
         super(SoftManipulatorEnv, self).__init__()
 
         self.simTime = 0
-        self._env_id  = 1
+        self._env_id  = env_id
         
         
         self._env = SoftRobotBasicEnvironment(moving_base=True,sphere_radius=0.02,_number_of_segment=2,gui=False if self._env_id>0 else True)
@@ -92,6 +92,11 @@ class SoftManipulatorEnv(gym.Env):
 
         info = {"rew":reward}
         return observation, reward, terminal, info
+
+
+    def seed(self, seed=None):
+        self.np_random, seed = gym.utils.seeding.np_random(seed)
+        return [seed]
 
 
     def reset(self):
@@ -152,7 +157,7 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    num_cpu_core = 1
+    num_cpu_core = 2
     max_epc = 200000
     
     # from gym.envs.registration import register
