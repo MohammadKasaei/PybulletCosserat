@@ -26,10 +26,10 @@ class SoftManipulatorEnv(gym.Env):
         super(SoftManipulatorEnv, self).__init__()
 
         self.simTime = 0
-        self._env_id  = 0
+        self._env_id  = 1
         
         
-        self._env = SoftRobotBasicEnvironment(moving_base=True,sphere_radius=0.02,_number_of_segment=2,gui=False if self._env_id>0 else True)
+        self._env = SoftRobotBasicEnvironment(moving_base=True,sphere_radius=0.02,_number_of_segment=5,gui=False if self._env_id>0 else True)
         base_link_shape = self._env._pybullet.createVisualShape(self._env._pybullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
         base_link_pos, base_link_ori = self._env._pybullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
         base_link_id    = self._env._pybullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
@@ -48,8 +48,14 @@ class SoftManipulatorEnv(gym.Env):
             
         ### IK
         self.action_space = spaces.Box(low=np.array([-0.02,-0.02,
+                                                     -0.02,-0.02,
+                                                     -0.02,-0.02,
+                                                     -0.02,-0.02,
                                                      -0.02, -0.02,-0.02]),
                                        high=np.array([0.02,0.02,
+                                                      0.02,0.02,
+                                                      0.02,0.02,
+                                                      0.02,0.02,
                                                       0.03, 0.02,0.02]), dtype="float32")
         observation_bound = np.array([1, 1, 1]) # pos 
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
@@ -74,7 +80,10 @@ class SoftManipulatorEnv(gym.Env):
         assert self.action_space.contains(action)
 
         self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, action[0], action[1],
-                                                                         action[2], action[3], action[4]]),
+                                                                               0.0, action[2], action[3],
+                                                                               0.0, action[4], action[5],
+                                                                               0.0, action[6], action[7],                                                                               
+                                                                         action[8], action[9], action[10]]),
                                             base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
         
         self.pos = self._shape[-1][:3]
@@ -96,9 +105,9 @@ class SoftManipulatorEnv(gym.Env):
 
     def reset(self):
         
-        des_x  = np.random.uniform(low=-0.08, high=0.08, size=(1,))
-        des_y  = np.random.uniform(low=-0.08, high=0.08, size=(1,))
-        des_z  = np.random.uniform(low= 0.26, high=0.32, size=(1,))
+        des_x  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
+        des_y  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
+        des_z  = np.random.uniform(low= 0.0, high=0.30, size=(1,))
         self.desired_pos = np.squeeze(np.array((des_x,des_y,des_z)))
         
         
@@ -152,8 +161,8 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    num_cpu_core = 1
-    max_epc = 200000
+    num_cpu_core = 16
+    max_epc = 500000
     
     # from gym.envs.registration import register
     # register(
@@ -166,35 +175,35 @@ if __name__ =="__main__":
     else:
         sf_env = SubprocVecEnv([make_env(i, i) for i in range(1, num_cpu_core)]) # Create the vectorized environment
     
-    # timestr   = time.strftime("%Y%m%d-%H%M%S")
-    # logdir    = "logs/learnedPolicies/log_"  + timestr
+    timestr   = time.strftime("%Y%m%d-%H%M%S")
+    logdir    = "logs/learnedPolicies/log_"  + timestr
 
-    # model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
+    model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
 
-    # # model.load("logs/learnedPolicies/model_20240603-012421.zip")
+    # model.load("logs/learnedPolicies/model_20240603-012421.zip")
     
-    # model.learn(total_timesteps=max_epc,log_interval=10)
-    # timestr   = time.strftime("%Y%m%d-%H%M%S")
-    # modelName = "logs/learnedPolicies/model_"+ timestr
-    # model.save(modelName)
-    # sf_env.close()
-    # print(f"finished. The model saved at {modelName}")
+    model.learn(total_timesteps=max_epc,log_interval=10)
+    timestr   = time.strftime("%Y%m%d-%H%M%S")
+    modelName = "logs/learnedPolicies/model_"+ timestr
+    model.save(modelName)
+    sf_env.close()
+    print(f"finished. The model saved at {modelName}")
     
     
         
-    model = SAC.load("logs/learnedPolicies/model_20240603-015320.zip", env = sf_env)
+    # model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
 
-    obs = sf_env.reset()
-    timesteps = 5000
-    for i in range(timesteps):
-        action, _states = model.predict(obs, deterministic=True)
-        obs, reward, done, info = sf_env.step(action)
-        #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
-        #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
-        if done:
-            time.sleep(1)
+    # obs = sf_env.reset()
+    # timesteps = 5000
+    # for i in range(timesteps):
+    #     action, _states = model.predict(obs, deterministic=True)
+    #     obs, reward, done, info = sf_env.step(action)
+    #     #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
+    #     #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
+    #     if done:
+    #         time.sleep(1)
             
-            obs = sf_env.reset()
-            time.sleep(0.1)
-            sf_env._env._dummy_sim_step(1)
+    #         obs = sf_env.reset()
+    #         time.sleep(0.1)
+    #         sf_env._env._dummy_sim_step(1)
 
