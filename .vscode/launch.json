@@ -5,11 +5,23 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "gym env",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv"
+        },
+        {
+            "name": "RL",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.rl_train"
+        },
+        {
             "name": "multi_segment_test soft robot",
             "type": "debugpy",
             "request": "launch",
             "module": "scripts.multi_segment_test"
-        }, 
+        },
         {
             "name": "softrobot test",
             "type": "debugpy",

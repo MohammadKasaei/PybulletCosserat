@@ -9,15 +9,15 @@ import cv2
 from pybullet_env.camera.camera import Camera
 
 class SoftRobotBasicEnvironment():
-    def __init__(self,moving_base = False, p=None,body_color = [0.5, .0, 0.6, 1], head_color= [0., 0, 0.75, 1],sphere_radius=0.02,_number_of_segment=3) -> None:
+    def __init__(self,moving_base = False, p=None,body_color = [0.5, .0, 0.6, 1], head_color= [0., 0, 0.75, 1],sphere_radius=0.02,_number_of_segment=3,gui=True) -> None:
         self._simulationStepTime = 0.005
-        self.vis = True
+        self.GUI = gui
         self._sphere_radius = sphere_radius 
         self._number_of_segment = _number_of_segment 
         if p is None:
             import pybullet as p
             self.bullet = p
-            self.bullet.connect(self.bullet.GUI if self.vis else self.bullet.DIRECT)
+            self.bullet.connect(self.bullet.GUI if self.GUI else self.bullet.DIRECT)
             self.bullet.setAdditionalSearchPath(pybullet_data.getDataPath())
             self.bullet.setGravity(0, 0, -9.81)
             self.bullet.setTimeStep(self._simulationStepTime)
@@ -538,7 +538,7 @@ class SoftRobotBasicEnvironment():
             # self.bullet.resetBasePositionAndOrientation(self._marker_ID, [pos[0],pos[2],pos[1]] + self._base_pos, (0, 0, 0, 1))
             self.bullet.resetBasePositionAndOrientation(self._marker_ID, [pos[0],pos[1],pos[2]] , ori)
             
-        # self._dummy_sim_step(1)
+        self._dummy_sim_step(1)
          
     def wait(self, sec):
         for _ in range(1 + int(sec / self._simulationStepTime)):
