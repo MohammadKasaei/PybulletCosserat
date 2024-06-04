@@ -757,6 +757,12 @@ class BasicEnvironment():
     def random_color(self):
         rgb =  np.random.uniform(0.0,0.7,3)
         return np.concatenate((rgb,[1]))
+    
+    def add_harmony_box(self, box_centre,ori_offset = [0.0, 0.0, 0.]):
+        id1 = p.loadURDF("environment_Yumi/urdf/objects/box.urdf",
+                         box_centre,
+                         p.getQuaternionFromEuler(ori_offset),
+                         useFixedBase=True)
         
 
     def creat_pile_of_cube(self,number_of_cubes):

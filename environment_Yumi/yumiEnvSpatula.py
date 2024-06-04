@@ -978,7 +978,7 @@ class yumiEnvSpatula():
         # box_width = 0.29
         # box_height = 0.35
         # box_z = 0.2/2
-        id1 = p.loadURDF("environment_Yumi/urdfs/objects/box.urdf",
+        id1 = p.loadURDF("environment/urdf/objects/box.urdf",
                          box_centre,
                          p.getQuaternionFromEuler(ori_offset),
                          useFixedBase=True)
@@ -987,7 +987,7 @@ class yumiEnvSpatula():
         box_width = 0.29
         box_height = 0.35
         box_z = 0.2/2
-        id1 = p.loadURDF("environment_Yumi/urdfs/objects/box.urdf",
+        id1 = p.loadURDF("environment/urdf/objects/box.urdf",
                          [box_centre[0] - box_width / 2.0, box_centre[1], box_z],
                          p.getQuaternionFromEuler(np.array([0, 0, 0])+ori_offset),
                          useFixedBase=True)

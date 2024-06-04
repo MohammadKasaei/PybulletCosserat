@@ -54,10 +54,16 @@
             "module": "scripts.BasicTest_manipulator_single"
         },
         {
-            "name": "basic manipulator-Single robots control",
+            "name": "basic manipulator-Single robots PD_control",
             "type": "debugpy",
             "request": "launch",
-            "module": "scripts.BasicTest_manipulator_single_control"
+            "module": "scripts.BasicTest_manipulator_single_PD_control"
+        },
+        {
+            "name": "basic manipulator-Single robots MPC",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.BasicTest_manipulator_single_tele_op"
         },
         {
             "name": "basic minispot",

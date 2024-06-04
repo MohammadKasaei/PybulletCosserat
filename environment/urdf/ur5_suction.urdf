@@ -254,7 +254,9 @@
     <visual>
       <origin xyz="0 0 0"/>
       <geometry>
-        <box size="0.02 0.14 0.14" />
+        <!-- <box size="0.02 0.14 0.14" /> -->
+        <box size="0.02 0.07 0.07" />
+        
       </geometry>
       <material name="blue">
         <color rgba="0. 0.5 0.5 1.0"/>

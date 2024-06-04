@@ -104,7 +104,53 @@ class SoftRobotBasicEnvironment():
 
         return self.bullet.getQuaternionFromEuler([roll, pitch, yaw]),[roll, pitch, yaw]
 
+    def is_gripper_in_contact(self):
+        list_of_contacts = self.bullet.getContactPoints(bodyA = self._robot_bodies[-3], linkIndexA = -1)
+        if len (list_of_contacts)>0:
+            return True
+        else:
+            return False
     
+
+    def suction_grasp(self,enable=True):
+        if enable:
+            list_of_contacts = self.bullet.getContactPoints(bodyA = self._robot_bodies[-3], linkIndexA = -1)            
+            if len (list_of_contacts)>0:
+                obj_id = list_of_contacts[0][2]
+                list_of_contacts = self.bullet.getContactPoints(bodyA = self._robot_bodies[-3], linkIndexA = -1,bodyB =obj_id,linkIndexB= -1)
+
+                ee_pose = self._head_pose
+                # contact_pos_A = np.array(list_of_contacts[0][5])
+                # contact_pos_B = np.array(list_of_contacts[0][6])
+                obj_pose = self.bullet.getBasePositionAndOrientation(obj_id)
+                obj_dim  = self.bullet.getVisualShapeData(obj_id)[0][3]
+                obj_mass = self.bullet.getDynamicsInfo(obj_id,-1)[0]
+                self.bullet.changeDynamics(obj_id,-1, mass = 0)
+                ori = self.bullet.getEulerFromQuaternion(ee_pose[1])
+                # ori = self.bullet.getQuaternionFromEuler(-np.array(ori))
+
+                self._suction_grasp = [self.bullet.createConstraint(
+                                    self._robot_bodies[-3],
+                                    -1,
+                                    obj_id,
+                                    -1,
+                                    jointType=self.bullet.JOINT_FIXED,
+                                    jointAxis=[0, 0, 0],
+                                    parentFramePosition=[0.01, 0, 0],
+                                    # parentFrameOrientation= p.getQuaternionFromEuler([0,-np.pi/2,0]),
+                                    parentFrameOrientation= ori,                                    
+                                    childFramePosition=[0.0, 0, 0.],
+                                    childFrameOrientation=[0,0,0,1])]
+                self._dummy_sim_step(10)
+                self.bullet.changeDynamics(obj_id, -1, mass = obj_mass)
+                # self.bullet.changeDynamics(obj_id, -1, mass = 0)
+                
+                return [obj_id]
+            else:
+                self._suction_grasp = []
+                print("error: no object is in contact with the suction!")
+                return -1
+            
     def create_robot(self):
         
         act = np.array([0, 0, 0])
@@ -126,8 +172,10 @@ class SoftRobotBasicEnvironment():
         shape = self.bullet.createCollisionShape(self.bullet.GEOM_SPHERE, radius=radius)
         visualShapeId = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius, rgbaColor=self._body_color)
 
-        visualShapeId_tip = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.01, 0.002, 0.001], rgbaColor=[1, 0, 0, 1])
+        # visualShapeId_tip = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.01, 0.002, 0.001], rgbaColor=[1, 0, 0, 1])
+        visualShapeId_tip = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.0, 0.002, 0.001], rgbaColor=[1, 0, 0, 1])
         visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius + 0.005, rgbaColor=self._head_color)
+        # visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.025, 0.025, 0.025], rgbaColor=self._head_color)
 
         # Load the positions
         idx = np.linspace(0, sol.shape[1] - 1, self._number_of_sphere, dtype=int)
@@ -265,7 +313,7 @@ class SoftRobotBasicEnvironment():
         gripper_pos2 = np.array(self.bullet.multiplyTransforms (head_pos, _base_ori, gripper_pos2, [0,0,0,1])[0])
         
         self.bullet.resetBasePositionAndOrientation(self._robot_bodies[-3], head_pos , base_ori)
-                
+        self._head_pose = [head_pos,base_ori]        
         self.bullet.resetBasePositionAndOrientation(self._robot_bodies[-2], gripper_pos1, tip_ori)
         self.bullet.resetBasePositionAndOrientation(self._robot_bodies[-1], gripper_pos2, tip_ori)
                 
