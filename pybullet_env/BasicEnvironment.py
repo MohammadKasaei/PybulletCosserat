@@ -445,3 +445,24 @@ class SoftRobotBasicEnvironment():
     def wait(self, sec):
         for _ in range(1 + int(sec / self._simulationStepTime)):
             self.bullet.stepSimulation()
+
+    def add_a_cube(self,pos,size=[0.1,0.1,0.1],mass = 0.1, color = [1,1,0,1], textureUniqueId = None):
+
+        # cubesID = []
+        box     = self.bullet.createCollisionShape(self.bullet.GEOM_BOX, halfExtents=[size[0]/2, size[1]/2, size[2]/2])
+        vis     = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[size[0]/2, size[1]/2, size[2]/2], rgbaColor=color)
+        obj_id  = self.bullet.createMultiBody(mass, box, vis, pos, [0,0,0,1])
+        self.bullet.changeDynamics(obj_id, 
+                        -1,
+                        spinningFriction=800,
+                        rollingFriction=0.0,
+                        linearDamping=50.0)
+        
+        if textureUniqueId is not None:
+            self.bullet.changeVisualShape(obj_id, -1, textureUniqueId=textureUniqueId)
+
+        # cubesID.append(obj_id)
+        
+        self.bullet.stepSimulation()
+        return obj_id 
+    

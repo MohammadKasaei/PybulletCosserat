@@ -8,7 +8,10 @@ from pybullet_env.BasicEnvironment import SoftRobotBasicEnvironment
 from getkey import getkey, keys
 from Keyboard.keyboardThread import KeyboardThread
 import threading
+import cv2
 
+
+import matplotlib.pyplot as plt
 
 def Jac(f, q, dq=np.array((1e-4,1e-4,1e-4,1e-4,1e-4,1e-4,1e-4,1e-4,1e-4))):
     
@@ -166,11 +169,15 @@ if __name__ == "__main__":
     env.wait(1)
     soft_robot_1 = SoftRobotBasicEnvironment(bullet= env._pybullet,number_of_segment=2)
     env.add_harmony_box([0.5,0,0])
-    # env.add_a_cube([0.5,0.1,0.1],[0.25,0.1,0.25],mass=1)
-    # env.add_a_cube([0.5,-0.1,0.1],[0.05,0.05,0.05],mass=1)
+    env.add_a_cube([0.5,0.1,0.1],[0.025,0.025,0.025],mass=1)
+    env.add_a_cube([0.45,0.13,0.1],[0.025,0.025,0.025],mass=1,color=[0,1,0,1])
+    env.add_a_cube([0.48,0.08,0.1],[0.025,0.025,0.025],mass=1,color=[1,0,1,1])
     
     env.add_a_cube([0.5,0.1,0.3],[0.3,0.4,0.02],mass=0.1,color=[0.7,0.3,0.4,1])
+    
+    env._pybullet.resetDebugVisualizerCamera(cameraDistance=0.6, cameraYaw=90, cameraPitch=-40, cameraTargetPosition=[0.5,0,0.5])
 
+    
     keyLock = threading.Lock()
     keyThr = KeyboardThread(freq=30, lock=keyLock)
     getKeyThread = threading.Thread(target=keyThr.readkey)
@@ -216,7 +223,7 @@ if __name__ == "__main__":
     logState = np.array([])
     
     prevPose = x0
-    
+   
     # # plot refrence trajectory 
     # for i in range(int(tf/(ts*10))):
     #     gt += (ts*10)
@@ -228,24 +235,27 @@ if __name__ == "__main__":
     xd = x0    
     prevPose = x0
     gt = 0.0
-    moving_base_disable = False
+    moving_base = True
     # for i in range(int(tf/ts)):
     while True:
         
         if int(gt*100)%10 == 0:
-            soft_robot_1.in_hand_camera_capture_image()
+            img,_ = soft_robot_1.in_hand_camera_capture_image()
             
         uy, ux, uz, key = keyThr.updateKeyInfo()
         
         if key == 'd' or key == 'D':
-            moving_base_disable = False 
+            moving_base = False 
         if key == 'e' or key == 'E':
-            moving_base_disable = True 
+            moving_base = True 
+        if key == 'i' or key == 'I':
+            pixels = np.array(cv2.cvtColor(img, cv2.COLOR_BGR2RGB) )
+            plt.imshow(pixels)
+            plt.show()        
             
-        
         if (soft_robot_1.is_gripper_in_contact()):
             print("1")
-            soft_robot_1.suction_grasp()
+            # soft_robot_1.suction_grasp()
        
        
 
@@ -257,7 +267,7 @@ if __name__ == "__main__":
         
         # xd, xd_dot = get_ref(gt,traj_name)
         xd = x0 + np.array([ux,uy,uz])
-        print (f" {key in keys.escapes} \t {ux:3.3f} \t {uy:3.3f} \t {uz:3.3f} \t {xd[0]:3.3f} \t {xd[1]:3.3f} \t {xd[2]:3.3f} ")
+        print (f" {moving_base} \t {ux:3.3f} \t {uy:3.3f} \t {uz:3.3f} \t {xd[0]:3.3f} \t {xd[1]:3.3f} \t {xd[2]:3.3f} ")
 
         xd_dot = np.array([0,0,0])
         
@@ -267,7 +277,7 @@ if __name__ == "__main__":
             ref = np.vstack((ref, xd))
    
         jac = Jac(soft_robot_1.calc_tip_pos,[sf_action,new_pos,base_orin])   
-        if moving_base_disable: 
+        if not moving_base: 
             jac[-3:] = np.zeros_like(jac[-3:])
         
         err = xd-xc
@@ -281,9 +291,11 @@ if __name__ == "__main__":
         # soft_robot_1._set_marker(xd)
         
         sf_action = 0.9*sf_action + 0.1*(qdot[:6] * ts)
-        sf_action[0] = 0
-        sf_action[3] = 0
-        sf_action = sf_action.clip(-0.02,0.02)
+        if moving_base: 
+            sf_action[0] = 0
+            sf_action[3] = 0 
+        
+        sf_action = sf_action.clip(-0.03,0.03)
         
         pos += (qdot[-3:] * ts)
         
@@ -303,9 +315,9 @@ if __name__ == "__main__":
         xc = shape[-1][:3]
         
         
-        if int(gt*100)%10 == 0:
-            env._pybullet.addUserDebugLine(prevPose, xc, [1, 0, 0.3], 5, 0) 
-            prevPose = xc
+        # if int(gt*100)%10 == 0:
+        #     env._pybullet.addUserDebugLine(prevPose, xc, [1, 0, 0.3], 5, 0) 
+        #     prevPose = xc
 
         # xc = env.move_robot(q)[:3]
         if (saveLog):

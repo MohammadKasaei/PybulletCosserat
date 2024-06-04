@@ -8,7 +8,7 @@ import numpy as np
 if __name__ == '__main__':
 
  
-    env = SoftRobotBasicEnvironment(moving_base=True)
+    env = SoftRobotBasicEnvironment()
 
 
     base_pos = np.array([0, -0.0, 0.06])
@@ -18,7 +18,7 @@ if __name__ == '__main__':
     ts = 0.01
     
     for i in range(1000):
-        env.capture_image()
+        # env.capture_image()
         # env.in_hand_camera_capture_image()
         
         t = time.time()

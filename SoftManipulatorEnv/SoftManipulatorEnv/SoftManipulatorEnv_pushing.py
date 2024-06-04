@@ -44,24 +44,26 @@ class SoftManipulatorEnv(gym.Env):
                                                                    0.0, 0.0, 0.0]),
                                             base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
         
-        self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
-        self._env.add_a_cube([0.02,0.0,0.2],[0.05,0.05,0.05],mass=0.01,color=[1,0,1,1])
+        # self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
+        self._initial_pos = [0.1,0.0,0.01]
+        self.obj_id = self._env.add_a_cube(self._initial_pos,[0.06,0.06,0.06],mass=0.01,color=[1,0,1,1])
 
         self._env.bullet.resetDebugVisualizerCamera(cameraDistance=0.75, cameraYaw=35, cameraPitch=-30, cameraTargetPosition=[0,0,0])
 
         self.reset()
             
         ### IK
-        self.action_space = spaces.Box(low=np.array([-0.02,-0.02,
-                                                     -0.02,-0.02,
-                                                     -0.02,-0.02,
-                                                     -0.02,-0.02,
-                                                     -0.02, -0.02,-0.02]),
-                                       high=np.array([0.02,0.02,
-                                                      0.02,0.02,
-                                                      0.02,0.02,
-                                                      0.02,0.02,
-                                                      0.03, 0.02,0.02]), dtype="float32")
+        self.action_space = spaces.Box(low=np.array([-0.02,-1,-0.02,-1,
+                                                     -0.02,-1,-0.02,-1,
+                                                     -0.02,-1,-0.02,-1,
+                                                     -0.02,-1,-0.02,-1,
+                                            -0.02,-1,-0.02,-1,-0.02,-1]),
+                                       high=np.array([0.02,1,0.02,1,
+                                                     0.02,1,0.02,1,
+                                                     0.02,1,0.02,1,
+                                                     0.02,1,0.02,1,
+                                              0.03,1,0.02,1,0.02,1]), dtype="float32")
+        
         observation_bound = np.array([1, 1, 1]) # pos 
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
         
@@ -83,19 +85,40 @@ class SoftManipulatorEnv(gym.Env):
     def step(self, action):
 
         # assert self.action_space.contains(action)
+        for i in range(50):
+            t = i*0.01    
+            seg1_cable_1   = action[0]*np.sin(action[1]*np.pi*t)
+            seg1_cable_2   = action[2]*np.sin(action[3]*np.pi*t)
+            
+            seg2_cable_1   = action[4]*np.sin(action[5]*np.pi*t)
+            seg2_cable_2   = action[6]*np.sin(action[7]*np.pi*t)
+            
+            seg3_cable_1   = action[8]*np.sin(action[9]*np.pi*t)
+            seg3_cable_2   = action[10]*np.sin(action[11]*np.pi*t)
+            
+            seg4_cable_1   = action[12]*np.sin(action[13]*np.pi*t)
+            seg4_cable_2   = action[14]*np.sin(action[15]*np.pi*t)
+            
+            seg5_cable_0   = action[16]*np.sin(action[17]*np.pi*t)
+            seg5_cable_1   = action[18]*np.sin(action[19]*np.pi*t)
+            seg5_cable_2   = action[20]*np.sin(action[21]*np.pi*t)
+            
+            
 
-        self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, action[0], action[1],
-                                                                               0.0, action[2], action[3],
-                                                                               0.0, action[4], action[5],
-                                                                               0.0, action[6], action[7],                                                                               
-                                                                         action[8], action[9], action[10]]),
-                                            base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
+            self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, seg1_cable_1, seg1_cable_2,
+                                                                                0.0, seg2_cable_1, seg2_cable_2,
+                                                                                0.0, seg3_cable_1, seg3_cable_2,
+                                                                                0.0, seg4_cable_1, seg4_cable_2,                                                                               
+                                                                        seg5_cable_0, seg1_cable_2, seg5_cable_1, seg5_cable_2]),
+                                                base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
+            
+            self.pos = np.array(self._env.bullet.getBasePositionAndOrientation(self.obj_id)[0])
         
-        self.pos = self._shape[-1][:3]
+        # self.pos = self._shape[-1][:3]
         # self.distance = np.linalg.norm(self.pos-self.posPred)
         self.distance = np.linalg.norm(self.pos-self.desired_pos)
 
-        reward = (math.exp(-(self.distance**2)/0.00001)) #+(0.1*math.exp(-(self.distance**2)))-0.1
+        reward = (math.exp(-100*(self.distance**2))) #+(0.1*math.exp(-(self.distance**2)))-0.1
         
         observation = self.observe()
         terminal = True
@@ -110,11 +133,19 @@ class SoftManipulatorEnv(gym.Env):
 
     def reset(self):
         
-        des_x  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
-        des_y  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
-        des_z  = np.random.uniform(low= 0.0, high=0.30, size=(1,))
+        self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, 0.0, 0.0,
+                                                                               0.0, 0.0, 0.0,
+                                                                               0.0, 0.0, 0.0,
+                                                                               0.0, 0.0, 0.0,
+                                                                               0.0, 0.0, 0.0]),
+                                                base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
+            
+        des_x  = np.random.uniform(low=-0.2, high=0.2, size=(1,))
+        des_y  = np.random.uniform(low=-0.2, high=0.2, size=(1,))
+        des_z  = 0*np.random.uniform(low= 0.0, high=0.1, size=(1,))
         self.desired_pos = np.squeeze(np.array((des_x,des_y,des_z)))
-        
+        self._env.bullet.resetBasePositionAndOrientation(self.obj_id, self._initial_pos, [0,0,0,1])
+
         
 
         # self.ol    = np.random.uniform(low= -0.03, high=0.04, size=(1,))[0]
@@ -166,8 +197,8 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    num_cpu_core = 1
-    max_epc = 500000
+    num_cpu_core = 12
+    max_epc = 1000000
     
     # from gym.envs.registration import register
     # register(
@@ -180,19 +211,19 @@ if __name__ =="__main__":
     else:
         sf_env = SubprocVecEnv([make_env(i, i) for i in range(1, num_cpu_core)]) # Create the vectorized environment
     
-    # timestr   = time.strftime("%Y%m%d-%H%M%S")
-    # logdir    = "logs/learnedPolicies/log_"  + timestr
+    timestr   = time.strftime("%Y%m%d-%H%M%S")
+    logdir    = "logs/learnedPolicies/log_"  + timestr
 
-    # model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
+    model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
 
-    # # model.load("logs/learnedPolicies/model_20240603-012421.zip")
+    # model.load("logs/learnedPolicies/model_20240603-012421.zip")
     
-    # model.learn(total_timesteps=max_epc,log_interval=10)
-    # timestr   = time.strftime("%Y%m%d-%H%M%S")
-    # modelName = "logs/learnedPolicies/model_"+ timestr
-    # model.save(modelName)
-    # sf_env.close()
-    # print(f"finished. The model saved at {modelName}")
+    model.learn(total_timesteps=max_epc,log_interval=10)
+    timestr   = time.strftime("%Y%m%d-%H%M%S")
+    modelName = "logs/learnedPolicies/model_"+ timestr
+    model.save(modelName)
+    sf_env.close()
+    print(f"finished. The model saved at {modelName}")
     
     
         
@@ -212,19 +243,19 @@ if __name__ =="__main__":
     #         time.sleep(0.1)
     #         sf_env._env._dummy_sim_step(1)
 
-    obs = sf_env.reset()
-    timesteps = 5000000
-    for i in range(timesteps):
-        t = i*0.005
-        sf1_seg1_cable_1   = .005*np.sin(0.05*np.pi*t)
-        obs, reward, done, info = sf_env.step(np.array([sf1_seg1_cable_1,0.0,0.01,0.0,0.002,0.0,0.0,0.0,0.0,0.0,0.0]))
+    # obs = sf_env.reset()
+    # timesteps = 5000000
+    # for i in range(timesteps):
+    #     t = i*0.005
+    #     sf1_seg1_cable_1   = .005*np.sin(0.05*np.pi*t)
+    #     obs, reward, done, info = sf_env.step(np.array([sf1_seg1_cable_1,0.0,0.01,0.0,0.002,0.0,0.0,0.0,0.0,0.0,0.0]))
         
-        #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
-        #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
-        # if done:
-        #     time.sleep(1)
+    #     #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
+    #     #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
+    #     # if done:
+    #     #     time.sleep(1)
             
-            # obs = sf_env.reset()
-            # time.sleep(0.1)
-            # sf_env._env._dummy_sim_step(1)
+    #         # obs = sf_env.reset()
+    #         # time.sleep(0.1)
+    #         # sf_env._env._dummy_sim_step(1)
 

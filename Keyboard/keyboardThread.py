@@ -18,8 +18,8 @@ class KeyboardThread():
         self.minX = -0.2
         self.maxY = 0.2
         self.minY = -0.2
-        self.maxZ = 0.2
-        self.minZ = -0.2
+        self.maxZ = 0.5
+        self.minZ = -0.5
         
         
         

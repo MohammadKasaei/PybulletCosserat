@@ -117,17 +117,17 @@ def get_ref(gt,traj_name='Circle'):
             scale = 20
 
             if (tt<T):
-                xd = (x0 + scale*np.array((-0.01+(0.02/T)*tt,0.01,-0.005*gt)))
-                xd_dot = scale*np.array(((0.02/T),0,-0.005))
+                xd = (x0 + scale*np.array((-0.01+(0.02/T)*tt,0.01,-0.0002*gt)))
+                xd_dot = scale*np.array(((0.02/T),0,-0.0002))
             elif (tt<2*T):
-                xd = (x0 + scale*np.array((0.01,0.01-((0.02/T)*(tt-T)),-0.005*gt)))
-                xd_dot = scale*np.array((0,-(0.02/T),-0.005))
+                xd = (x0 + scale*np.array((0.01,0.01-((0.02/T)*(tt-T)),-0.0002*gt)))
+                xd_dot = scale*np.array((0,-(0.02/T),-0.0002))
             elif (tt<3*T):
-                xd = (x0 + scale*np.array((0.01-((0.02/T)*(tt-(2*T))),-0.01,-0.005*gt)))
-                xd_dot = scale*np.array((-(0.02/T),0,-0.005))
+                xd = (x0 + scale*np.array((0.01-((0.02/T)*(tt-(2*T))),-0.01,-0.0002*gt)))
+                xd_dot = scale*np.array((-(0.02/T),0,-0.0002))
             elif (tt<4*T):
-                xd = (x0 + scale*np.array((-0.01,-0.01+((0.02/T)*(tt-(3*T))),0.0)))
-                xd_dot = scale*np.array((0,+(0.02/T),-0.005))
+                xd = (x0 + scale*np.array((-0.01,-0.01+((0.02/T)*(tt-(3*T))),-0.0002*gt)))
+                xd_dot = scale*np.array((0,+(0.02/T),-0.0002))
             else:
                 # t0 = time.time()+5
                 gt = 0
@@ -135,7 +135,7 @@ def get_ref(gt,traj_name='Circle'):
         elif traj_name=='Triangle':        
             T  = 12.5 *2
             tt = gt % (4*T)
-            scale = 20
+            scale = 10
             if (tt<T):
                 xd = (x0 + scale*np.array((-0.01+(0.02/T)*tt,-0.01+(0.02/T)*tt,0.0)))
                 xd_dot = scale*np.array(((0.02/T),(0.02/T),0))
@@ -176,7 +176,7 @@ if __name__ == "__main__":
  
     t = 0
     dt = 0.01
-    tf = 20
+    tf = 40
     ts = env._simulationStepTime
     # traj_name = 'Square'
     # traj_name = 'Circle'
@@ -200,7 +200,6 @@ if __name__ == "__main__":
     tp = time.time()
     t0 = tp
     ref = None
-    
     
     pos = np.array([0.5 ,0.0 ,0.5])
     ori = np.array([np.pi/2,np.pi/2,0])

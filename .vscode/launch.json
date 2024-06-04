@@ -5,6 +5,12 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "gym env-push",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_pushing"
+        },
+        {
             "name": "gym env",
             "type": "debugpy",
             "request": "launch",
