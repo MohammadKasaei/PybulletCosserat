@@ -33,7 +33,12 @@ class A1Env():
         
         self.reset(zleg = -0.25)
 
-
+    def add_harmony_box(self, box_centre,ori_offset = [0.0, 0.0, 0.]):
+        id1 = p.loadURDF("environment_Yumi/urdf/objects/box.urdf",
+                         box_centre,
+                         p.getQuaternionFromEuler(ori_offset),
+                         useFixedBase=True)
+        
     def _EndEffectorIK(self, leg_id, position, position_in_world_frame):
         """Calculate the joint positions from the end effector position."""
         assert len(self._foot_link_ids) == self.num_legs
@@ -154,10 +159,29 @@ class A1Env():
         
 
 
+    def add_a_cube(self,pos,size=[0.1,0.1,0.1],mass = 0.1, color = [1,1,0,1], textureUniqueId = None):
+
+        # cubesID = []
+        box     = p.createCollisionShape(p.GEOM_BOX, halfExtents=[size[0]/2, size[1]/2, size[2]/2])
+        vis     = p.createVisualShape(p.GEOM_BOX, halfExtents=[size[0]/2, size[1]/2, size[2]/2], rgbaColor=color)
+        obj_id  = p.createMultiBody(mass, box, vis, pos, [0,0,0,1])
+        p.changeDynamics(obj_id, 
+                        -1,
+                        spinningFriction=800,
+                        rollingFriction=0.0,
+                        linearDamping=50.0)
+        
+        if textureUniqueId is not None:
+            p.changeVisualShape(obj_id, -1, textureUniqueId=textureUniqueId)
+
+        # cubesID.append(obj_id)
+        
+        p.stepSimulation()
+        return obj_id 
 
 
 
-        cpg.gtime = self.tsim
+        # cpg.gtime = self.tsim
         cpg.apply_walk_command()
         cpg.updateOmniJoints_CPG()
         
@@ -332,6 +356,7 @@ class MiniSpotEnv():
                                                 targetPosition=self.JointPositions[i], force=20)
 
 
+    
     def step(self,cpg):
 
         if cpg.gtime < 5:
@@ -411,10 +436,15 @@ if __name__ == "__main__":
     cpg.NewStepX_raw = 0.0
     cpg.NewStepY_raw = 0.0
     cpg.NewStepTheta_raw = 0
+    env.add_harmony_box([0.4,0.14,0])
 
     
-    soft_robot_1 = SoftRobotBasicEnvironment(moving_base=True,p = env._pybullet)
+    soft_robot_1 = SoftRobotBasicEnvironment( bullet = env._pybullet,number_of_segment=4)
     base_link_id = None
+
+    env.add_a_cube([0.7,0.1,0.3],[0.3,0.4,0.02],mass=0.1,color=[0.7,0.3,0.4,1])
+
+    
     t = 0
     dt = 0.01
     cam_pos = np.array([0,0,0])
@@ -423,19 +453,28 @@ if __name__ == "__main__":
         env.step(cpg)
     
         
-        sf1_seg1_cable_1   = .003*np.sin(0.5*np.pi*t)
-        sf1_seg1_cable_2   = 0.01+.005*np.sin(0.5*np.pi*t)
-        sf1_seg2_cable_1   = 0.005 + .00*np.sin(0.5*np.pi*t+1)
-        sf1_seg2_cable_2   = 0.005+.003*np.sin(0.5*np.pi*t+1)
-        sf1_seg3_cable_0   = .02*np.sin(0.5*np.pi*t)
-        sf1_seg3_cable_1   = .01*np.sin(0.5*np.pi*t+2)
-        sf1_seg3_cable_2   = .02*np.sin(0.5*np.pi*t+2)
-        sf1_gripper_pos    = np.abs(np.sin(np.pi*t))
+        # sf1_seg1_cable_1   = .003*np.sin(0.5*np.pi*t)
+        # sf1_seg1_cable_2   = 0.01+.005*np.sin(0.5*np.pi*t)
+        # sf1_seg2_cable_1   = 0.005 + .00*np.sin(0.5*np.pi*t+1)
+        # sf1_seg2_cable_2   = 0.005+.003*np.sin(0.5*np.pi*t+1)
+        # sf1_seg3_cable_0   = .02*np.sin(0.5*np.pi*t)
+        # sf1_seg3_cable_1   = .01*np.sin(0.5*np.pi*t+2)
+        # sf1_seg3_cable_2   = .02*np.sin(0.5*np.pi*t+2)
+        # sf1_gripper_pos    = np.abs(np.sin(np.pi*t))
                 
+        sf1_seg1_cable_1   = 0.0
+        sf1_seg1_cable_2   = 0.01
+        sf1_seg2_cable_1   = 0.01 
+        sf1_seg2_cable_2   = 0.0
+        sf1_seg3_cable_0   = 0.02
+        sf1_seg3_cable_1   = -0.005
+        sf1_seg3_cable_2   = -0.00
+        sf1_gripper_pos    = 0.00
+        
         p0,o0 = env.get_ee_state()
         p0,o0 = env._pybullet.multiplyTransforms(p0, o0, [0.23, 0.0,0.1], [0,0,0,1])
-        angle = np.pi/2  
-        rotation_quaternion = env._pybullet.getQuaternionFromEuler([angle, 0, angle])
+        angle = np.pi
+        rotation_quaternion = env._pybullet.getQuaternionFromEuler([angle, 0, angle/2])
         
         new_pos, new_ori = env._pybullet.multiplyTransforms(p0, o0, [0,0,0], rotation_quaternion)
         base_orin = env._pybullet.getEulerFromQuaternion(new_ori)
@@ -449,11 +488,11 @@ if __name__ == "__main__":
             base_link_pos, base_link_ori = env._pybullet.multiplyTransforms(new_pos, new_ori, [0,-0.02,0.0], [0,0,0,1])
             env._pybullet.resetBasePositionAndOrientation(base_link_id, base_link_pos , base_link_ori)
         
-        cam_pos = 0.8*cam_pos + 0.2*np.array([p0[0],0,0.2])
+        # cam_pos = 0.8*cam_pos + 0.2*np.array([p0[0],0,0.2])
         
-        env._pybullet.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=45, cameraPitch=-30, cameraTargetPosition=cam_pos)
+        # env._pybullet.resetDebugVisualizerCamera(cameraDistance=0.9, cameraYaw=45, cameraPitch=-30, cameraTargetPosition=cam_pos)
 
-        soft_robot_1.move_robot_ori(action=np.array([0.0, sf1_seg1_cable_1, sf1_seg1_cable_2, 
+        soft_robot_1.move_robot_ori(action=np.array([sf1_seg3_cable_0, sf1_seg1_cable_1, sf1_seg1_cable_2, 
                                                     0.0, sf1_seg2_cable_1, sf1_seg2_cable_2,
                                                     sf1_seg3_cable_0, sf1_seg3_cable_1, sf1_seg3_cable_2]),
                                 base_pos = new_pos, base_orin = base_orin)

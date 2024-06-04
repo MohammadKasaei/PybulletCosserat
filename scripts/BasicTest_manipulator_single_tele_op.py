@@ -195,7 +195,7 @@ if __name__ == "__main__":
     ref = None
     
     
-    pos = np.array([0.5 ,0.0 ,0.5])
+    pos = np.array([0.5 ,0.0 ,0.6])
     ori = np.array([np.pi/2,np.pi/2,0])
     env.move_arm (target_pos= pos, target_ori=ori)
     env._dummy_sim_step(100)

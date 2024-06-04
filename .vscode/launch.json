@@ -60,7 +60,7 @@
             "module": "scripts.BasicTest_manipulator_single_PD_control"
         },
         {
-            "name": "basic manipulator-Single robots MPC",
+            "name": "basic manipulator-Single robots tele op",
             "type": "debugpy",
             "request": "launch",
             "module": "scripts.BasicTest_manipulator_single_tele_op"

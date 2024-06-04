@@ -50,9 +50,9 @@ def get_ref(gt,traj_name='Circle'):
     
         if traj_name == 'Rose':
             k = 4
-            T  = 200
+            T  = 20
             w  = 2*np.pi/T
-            a = 0.025
+            a = 0.2
             r  = a * np.cos(k*w*gt)
             xd = (x0 + np.array((r*np.cos(w*gt),r*np.sin(w*gt),0.00*gt)))
             xd_dot = np.array((-r*w*np.sin(w*gt),r*w*np.cos(w*gt),0.00*gt))
@@ -65,25 +65,25 @@ def get_ref(gt,traj_name='Circle'):
             xd = (x0 + np.array(((shift+(radius+radius2*np.cos(w*gt))*np.cos(w*gt)),(radius+radius2*np.cos(w*gt))*np.sin(w*gt),0.00*gt)))
             xd_dot = np.array((radius*(-w*np.sin(w*(gt)-0.5*w*np.sin(w/2*(gt)))),radius*(w*np.cos(w*(gt)-0.5*radius2*np.cos(w/2*gt))),0.00))                            
         elif traj_name=='Circle':
-            T  = 10
+            T  = 20
             w  = 2*np.pi/T
-            radius = 0.25
-            xd = (x0 + np.array((radius*np.sin(w*(gt)),radius*np.cos(w*(gt)),-0.005*gt)))
-            xd_dot = np.array((radius*w*np.cos(w*(gt)),-radius*w*np.sin(w*(gt)),-0.005))
+            radius = 0.2
+            xd = (x0 + np.array((radius*np.sin(w*(gt)),radius*np.cos(w*(gt)),-0.00*gt)))
+            xd_dot = np.array((radius*w*np.cos(w*(gt)),-radius*w*np.sin(w*(gt)),-0.00))
             # xd = (x0 + np.array((0.00*gt,radius*np.sin(w*(gt)),radius*np.cos(w*(gt)))))
             # xd_dot = np.array((0.00,radius*w*np.cos(w*(gt)),-radius*w*np.sin(w*(gt))))
             
         elif traj_name=='Helix':
-            T  = 50
+            T  = 20
             w  = 2*np.pi/T
-            radius = 0.04
-            xd = (x0 + np.array((radius*np.sin(w*(gt)),radius*np.cos(w*(gt)),0.0001*gt)))
-            xd_dot = ( np.array((radius*w*np.cos(w*(gt)),-radius*w*np.sin(w*(gt)),0.0001)))
+            radius = 0.2
+            xd = (x0 + np.array((radius*np.sin(w*(gt)),radius*np.cos(w*(gt)),-0.005*gt)))
+            xd_dot = ( np.array((radius*w*np.cos(w*(gt)),-radius*w*np.sin(w*(gt)),-0.005)))
         elif traj_name=='Eight_Figure':
-            T  = 25*2
-            A  = 0.02
+            T  = 10
+            A  = 0.2
             w  = 2*np.pi/T
-            xd = np.array((A*np.sin(w*gt) , A*np.sin((w/2)*gt),0.1))
+            xd = x0 + np.array((A*np.sin(w*gt) , A*np.sin((w/2)*gt),0.))
             xd_dot = np.array((A*w*np.cos(w*gt),A*w/2*np.cos(w/2*gt),0.00))
         elif traj_name=='Moving_Eight_Figure':
             T  = 15
@@ -92,9 +92,9 @@ def get_ref(gt,traj_name='Circle'):
             xd = np.array(x0+(A*np.sin(w*gt) , A*np.sin((w/2)*gt),0.002*gt))
             xd_dot = np.array((A*w*np.cos(w*gt),A*w/2*np.cos(w/2*gt),0.002))
         elif traj_name=='Square':        
-            T  = 12.5*2
+            T  = 5 #12.5*2
             tt = gt % (4*T)
-            scale = 3
+            scale = 20
 
             if (tt<T):
                 xd = (x0 + scale*np.array((-0.01+(0.02/T)*tt,0.01,0.0)))
@@ -112,25 +112,30 @@ def get_ref(gt,traj_name='Circle'):
                 # t0 = time.time()+5
                 gt = 0
         elif traj_name=='Moveing_Square':        
-            T  = 10.0
+            T  = 5 #12.5*2
             tt = gt % (4*T)
+            scale = 20
+
             if (tt<T):
-                xd = (x0 + 2*np.array((-0.01+(0.02/T)*tt,0.01,-0.02+0.0005*gt)))
-                xd_dot = 2*np.array(((0.02/T),0,0.0005))
+                xd = (x0 + scale*np.array((-0.01+(0.02/T)*tt,0.01,-0.005*gt)))
+                xd_dot = scale*np.array(((0.02/T),0,-0.005))
             elif (tt<2*T):
-                xd = (x0 + 2*np.array((0.01,0.01-((0.02/T)*(tt-T)),-0.02+0.0005*gt)))
-                xd_dot = 2*np.array((0,-(0.02/T),0.0005))
+                xd = (x0 + scale*np.array((0.01,0.01-((0.02/T)*(tt-T)),-0.005*gt)))
+                xd_dot = scale*np.array((0,-(0.02/T),-0.005))
             elif (tt<3*T):
-                xd = (x0 + 2*np.array((0.01-((0.02/T)*(tt-(2*T))),-0.01,-0.02+0.0005*gt)))
-                xd_dot = 2*np.array((-(0.02/T),0,0.0005))
+                xd = (x0 + scale*np.array((0.01-((0.02/T)*(tt-(2*T))),-0.01,-0.005*gt)))
+                xd_dot = scale*np.array((-(0.02/T),0,-0.005))
             elif (tt<4*T):
-                xd = (x0 + 2*np.array((-0.01,-0.01+((0.02/T)*(tt-(3*T))),-0.02+0.0005*gt)))
-                xd_dot = 2*np.array((0,+(0.02/T),0.0005))
+                xd = (x0 + scale*np.array((-0.01,-0.01+((0.02/T)*(tt-(3*T))),0.0)))
+                xd_dot = scale*np.array((0,+(0.02/T),-0.005))
+            else:
+                # t0 = time.time()+5
+                gt = 0
               
         elif traj_name=='Triangle':        
             T  = 12.5 *2
             tt = gt % (4*T)
-            scale = 2
+            scale = 20
             if (tt<T):
                 xd = (x0 + scale*np.array((-0.01+(0.02/T)*tt,-0.01+(0.02/T)*tt,0.0)))
                 xd_dot = scale*np.array(((0.02/T),(0.02/T),0))
@@ -166,13 +171,23 @@ if __name__ == "__main__":
     # env.add_a_cube([0.5,-0.1,0.1],[0.05,0.05,0.05],mass=1)
     
     # env.add_a_cube([0.5,0.0,0.3],[0.3,0.3,0.02],mass=0.1,color=[0,0.3,0,1])
+    env._pybullet.resetDebugVisualizerCamera(cameraDistance=0.6, cameraYaw=45, cameraPitch=-30, cameraTargetPosition=[0.5,0,0.5])
 
  
     t = 0
     dt = 0.01
     tf = 20
     ts = env._simulationStepTime
-    traj_name = 'Circle'
+    # traj_name = 'Square'
+    # traj_name = 'Circle'
+    # traj_name = 'Eight_Figure'
+    traj_name = 'Moveing_Square'
+    
+    # traj_name = 'Rose'
+    # traj_name = 'Helix'
+    
+    
+    
     gt = 0.0
     
     
@@ -181,7 +196,7 @@ if __name__ == "__main__":
 
 
 
-    K = 0.5*np.diag((5.45, 5.45, 5.45))
+    K = 0.35*np.diag((5.45, 5.45, 5.45))
     tp = time.time()
     t0 = tp
     ref = None
@@ -204,7 +219,7 @@ if __name__ == "__main__":
     x0 = np.copy(xc)
     
     timestr = time.strftime("%Y%m%d-%H%M%S")
-    logFname = "scripts/logs/log_" + timestr+".dat"
+    logFname = f"scripts/logs/log_{traj_name}" + timestr+".dat"
     logState = np.array([])
     
     prevPose = x0
