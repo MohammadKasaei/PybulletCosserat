@@ -31,7 +31,7 @@ class SoftManipulatorEnv(gym.Env):
         
         self._env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5,gui=self._gui)
         base_link_shape = self._env.bullet.createVisualShape(self._env.bullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
-        base_link_pos, base_link_ori = self._env.bullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
+        base_link_pos, base_link_ori = self._env.bullet.multiplyTransforms([0,0,0.51], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
         base_link_id    = self._env.bullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
                                                             baseVisualShapeIndex=base_link_shape,
                                                             basePosition= base_link_pos , baseOrientation=base_link_ori)
@@ -45,19 +45,19 @@ class SoftManipulatorEnv(gym.Env):
                                             base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
         
         # self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
-        self._initial_pos = [0.1,0.0,0.01]
-        self.obj_id = self._env.add_a_cube(self._initial_pos,[0.06,0.06,0.06],mass=0.01,color=[1,0,1,1])
+        self._initial_pos = [0.1,0.0,0.041]
+        self.obj_id = self._env.add_a_cube(self._initial_pos,[0.08,0.08,0.08],mass=0.01,color=[1,0,1,1])
 
         self._env.bullet.resetDebugVisualizerCamera(cameraDistance=0.75, cameraYaw=35, cameraPitch=-30, cameraTargetPosition=[0,0,0])
 
         self.reset()
             
         ### IK
-        self.action_space = spaces.Box(low=np.array([-0.02,-1,-0.02,-1,
-                                                     -0.02,-1,-0.02,-1,
-                                                     -0.02,-1,-0.02,-1,
-                                                     -0.02,-1,-0.02,-1,
-                                            -0.02,-1,-0.02,-1,-0.02,-1]),
+        self.action_space = spaces.Box(low=np.array([-0.02,-0.51,-0.02,-1,
+                                                     -0.02,-0.51,-0.02,-1,
+                                                     -0.02,-0.51,-0.02,-1,
+                                                     -0.02,-0.51,-0.02,-1,
+                                            -0.02,-1,-0.02,-0.51,-0.02,-1]),
                                        high=np.array([0.02,1,0.02,1,
                                                      0.02,1,0.02,1,
                                                      0.02,1,0.02,1,
@@ -86,9 +86,9 @@ class SoftManipulatorEnv(gym.Env):
 
         # assert self.action_space.contains(action)
         for i in range(50):
-            t = i*0.01    
-            seg1_cable_1   = action[0]*np.sin(action[1]*np.pi*t)
-            seg1_cable_2   = action[2]*np.sin(action[3]*np.pi*t)
+            t = i*0.005    
+            seg1_cable_1   = 0*action[0]*np.sin(action[1]*np.pi*t)
+            seg1_cable_2   = 0*action[2]*np.sin(action[3]*np.pi*t)
             
             seg2_cable_1   = action[4]*np.sin(action[5]*np.pi*t)
             seg2_cable_2   = action[6]*np.sin(action[7]*np.pi*t)
@@ -99,9 +99,9 @@ class SoftManipulatorEnv(gym.Env):
             seg4_cable_1   = action[12]*np.sin(action[13]*np.pi*t)
             seg4_cable_2   = action[14]*np.sin(action[15]*np.pi*t)
             
-            seg5_cable_0   = action[16]*np.sin(action[17]*np.pi*t)
-            seg5_cable_1   = action[18]*np.sin(action[19]*np.pi*t)
-            seg5_cable_2   = action[20]*np.sin(action[21]*np.pi*t)
+            seg5_cable_0   = 0*action[16]*np.sin(action[17]*np.pi*t)
+            seg5_cable_1   = 0*action[18]*np.sin(action[19]*np.pi*t)
+            seg5_cable_2   = 0*action[20]*np.sin(action[21]*np.pi*t)
             
             
 
@@ -112,13 +112,30 @@ class SoftManipulatorEnv(gym.Env):
                                                                         seg5_cable_0, seg1_cable_2, seg5_cable_1, seg5_cable_2]),
                                                 base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
             
-            self.pos = np.array(self._env.bullet.getBasePositionAndOrientation(self.obj_id)[0])
-        
-        # self.pos = self._shape[-1][:3]
-        # self.distance = np.linalg.norm(self.pos-self.posPred)
-        self.distance = np.linalg.norm(self.pos-self.desired_pos)
+            
+            if self._env.is_gripper_in_contact(self.obj_id):
+                # Calculate the direction from object1 to object2
+                
+                pos1, _ = self._env.bullet.getBasePositionAndOrientation(self._env._robot_bodies[-3])
+                pos2, _ = self._env.bullet.getBasePositionAndOrientation(self.obj_id)
+                direction = [pos2[i] - pos1[i] for i in range(3)]
+                
+                # Normalize the direction vector
+                norm = sum(x**2 for x in direction) ** 0.5
+                direction = [x / norm for x in direction]
+                
+                force_magnitude = 0.25  # Adjust this value as needed
+                force = [force_magnitude * x for x in direction]
+                self._env.bullet.applyExternalForce(self.obj_id, -1, force, [0, 0, 0],  self._env.bullet.WORLD_FRAME)
+                self._env.bullet.stepSimulation()
+                    
+        self.obj_pos = np.array(self._env.bullet.getBasePositionAndOrientation(self.obj_id)[0])
 
-        reward = (math.exp(-100*(self.distance**2))) #+(0.1*math.exp(-(self.distance**2)))-0.1
+        self.pos = self._shape[-1][:3]
+        self.distance_obj = np.linalg.norm(self.desired_pos-self.obj_pos)
+        # self.distance_obj_tip = np.linalg.norm(self.pos-self.obj_pos)
+
+        reward = (math.exp(-300*(self.distance_obj**2))) #+(0.1*math.exp(-(self.distance**2)))-0.1
         
         observation = self.observe()
         terminal = True
@@ -140,11 +157,14 @@ class SoftManipulatorEnv(gym.Env):
                                                                                0.0, 0.0, 0.0]),
                                                 base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
             
-        des_x  = np.random.uniform(low=-0.2, high=0.2, size=(1,))
-        des_y  = np.random.uniform(low=-0.2, high=0.2, size=(1,))
+        des_x  = np.random.uniform(low=0.1, high=0.2, size=(1,))
+        des_y  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
         des_z  = 0*np.random.uniform(low= 0.0, high=0.1, size=(1,))
         self.desired_pos = np.squeeze(np.array((des_x,des_y,des_z)))
         self._env.bullet.resetBasePositionAndOrientation(self.obj_id, self._initial_pos, [0,0,0,1])
+        
+        for i in range(10):
+            self._env.bullet.stepSimulation()
 
         
 
@@ -197,8 +217,8 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    num_cpu_core = 12
-    max_epc = 1000000
+    num_cpu_core = 1
+    max_epc = 200000
     
     # from gym.envs.registration import register
     # register(
@@ -218,6 +238,7 @@ if __name__ =="__main__":
 
     # model.load("logs/learnedPolicies/model_20240603-012421.zip")
     
+    
     model.learn(total_timesteps=max_epc,log_interval=10)
     timestr   = time.strftime("%Y%m%d-%H%M%S")
     modelName = "logs/learnedPolicies/model_"+ timestr
@@ -227,8 +248,10 @@ if __name__ =="__main__":
     
     
         
-    # model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
+    # # model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
+    # model = SAC.load("logs/learnedPolicies/model_20240605-070914", env = sf_env)
 
+    
     # obs = sf_env.reset()
     # timesteps = 5000
     # for i in range(timesteps):

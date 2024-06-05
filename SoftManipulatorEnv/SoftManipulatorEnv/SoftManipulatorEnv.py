@@ -44,8 +44,8 @@ class SoftManipulatorEnv(gym.Env):
                                                                    0.0, 0.0, 0.0]),
                                             base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
         
-        self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
-        self._env.add_a_cube([0.02,0.0,0.2],[0.05,0.05,0.05],mass=0.01,color=[1,0,1,1])
+        # self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
+        # self._env.add_a_cube([0.02,0.0,0.2],[0.05,0.05,0.05],mass=0.01,color=[1,0,1,1])
 
         self._env.bullet.resetDebugVisualizerCamera(cameraDistance=0.75, cameraYaw=35, cameraPitch=-30, cameraTargetPosition=[0,0,0])
 
@@ -110,12 +110,21 @@ class SoftManipulatorEnv(gym.Env):
 
     def reset(self):
         
+        self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, 0.0, 0.0,
+                                                                        0.0, 0.0, 0.0,
+                                                                        0.0, 0.0, 0.0,
+                                                                        0.0, 0.0, 0.0,
+                                                                        0.0, 0.0, 0.0]),
+                                        base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
+    
+        
         des_x  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
         des_y  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
         des_z  = np.random.uniform(low= 0.0, high=0.30, size=(1,))
         self.desired_pos = np.squeeze(np.array((des_x,des_y,des_z)))
         
-        
+        for i in range(10):
+            self._env.bullet.stepSimulation()
 
         # self.ol    = np.random.uniform(low= -0.03, high=0.04, size=(1,))[0]
         # self.ouy   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
@@ -167,7 +176,7 @@ def make_env(env_id, rank, seed=0):
 if __name__ =="__main__":
     
     num_cpu_core = 1
-    max_epc = 500000
+    max_epc = 200000
     
     # from gym.envs.registration import register
     # register(
@@ -196,28 +205,28 @@ if __name__ =="__main__":
     
     
         
-    # model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
-
-    # obs = sf_env.reset()
-    # timesteps = 5000
-    # for i in range(timesteps):
-    #     action, _states = model.predict(obs, deterministic=True)
-    #     obs, reward, done, info = sf_env.step(action)
-    #     #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
-    #     #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
-    #     if done:
-    #         time.sleep(1)
-            
-    #         obs = sf_env.reset()
-    #         time.sleep(0.1)
-    #         sf_env._env._dummy_sim_step(1)
+    model = SAC.load("logs/learnedPolicies/model_20240605-170607", env = sf_env)
 
     obs = sf_env.reset()
-    timesteps = 5000000
+    timesteps = 5000
     for i in range(timesteps):
-        t = i*0.005
-        sf1_seg1_cable_1   = .005*np.sin(0.05*np.pi*t)
-        obs, reward, done, info = sf_env.step(np.array([sf1_seg1_cable_1,0.0,0.01,0.0,0.002,0.0,0.0,0.0,0.0,0.0,0.0]))
+        action, _states = model.predict(obs, deterministic=True)
+        obs, reward, done, info = sf_env.step(action)
+        #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
+        #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
+        if done:
+            time.sleep(1)
+            
+            obs = sf_env.reset()
+            time.sleep(0.1)
+            sf_env._env._dummy_sim_step(1)
+
+    # obs = sf_env.reset()
+    # timesteps = 5000000
+    # for i in range(timesteps):
+    #     t = i*0.005
+    #     sf1_seg1_cable_1   = .005*np.sin(0.05*np.pi*t)
+    #     obs, reward, done, info = sf_env.step(np.array([sf1_seg1_cable_1,0.0,0.01,0.0,0.002,0.0,0.0,0.0,0.0,0.0,0.0]))
         
         #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
         #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)

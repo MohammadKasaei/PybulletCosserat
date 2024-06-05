@@ -648,11 +648,11 @@ class BasicEnvironment():
         box     = p.createCollisionShape(p.GEOM_BOX, halfExtents=[size[0]/2, size[1]/2, size[2]/2])
         vis     = p.createVisualShape(p.GEOM_BOX, halfExtents=[size[0]/2, size[1]/2, size[2]/2], rgbaColor=color)
         obj_id  = p.createMultiBody(mass, box, vis, pos, [0,0,0,1])
-        p.changeDynamics(obj_id, 
-                        -1,
-                        spinningFriction=800,
-                        rollingFriction=0.0,
-                        linearDamping=50.0)
+        # p.changeDynamics(obj_id, 
+        #                 -1,
+        #                 spinningFriction=800,
+        #                 rollingFriction=0.0,
+        #                 linearDamping=50.0)
         
         if textureUniqueId is not None:
             p.changeVisualShape(obj_id, -1, textureUniqueId=textureUniqueId)

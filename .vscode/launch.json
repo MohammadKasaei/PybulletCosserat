@@ -11,6 +11,12 @@
             "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_pushing"
         },
         {
+            "name": "gym env obs",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_obs"
+        },
+        {
             "name": "gym env",
             "type": "debugpy",
             "request": "launch",

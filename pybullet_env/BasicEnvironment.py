@@ -66,16 +66,16 @@ class SoftRobotBasicEnvironment():
             self.bullet.changeVisualShape(obj_id, -1, textureUniqueId=textureUniqueId)
         return obj_id
 
-    def add_a_cube(self, pos, size=[0.1, 0.1, 0.1], mass=0.1, color=[1, 1, 0, 1], textureUniqueId=None):
+    def add_a_cube(self, pos, ori= [0,0,0,1], size=[0.1, 0.1, 0.1], mass=0.1, color=[1, 1, 0, 1], textureUniqueId=None):
         # cubesID = []
         box = self.bullet.createCollisionShape(self.bullet.GEOM_BOX, halfExtents=[size[0] / 2, size[1] / 2, size[2] / 2])
         vis = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[size[0] / 2, size[1] / 2, size[2] / 2], rgbaColor=color)
-        obj_id = self.bullet.createMultiBody(mass, box, vis, pos, [0, 0, 0, 1])
-        self.bullet.changeDynamics(obj_id,
-                         -1,
-                         spinningFriction=800,
-                         rollingFriction=0.0,
-                         linearDamping=50.0)
+        obj_id = self.bullet.createMultiBody(mass, box, vis, pos, ori)
+        # self.bullet.changeDynamics(obj_id,
+        #                  -1,
+        #                  spinningFriction=800,
+        #                  rollingFriction=0.0,
+        #                  linearDamping=50.0)
 
         if textureUniqueId is not None:
             self.bullet.changeVisualShape(obj_id, -1, textureUniqueId=textureUniqueId)
@@ -104,12 +104,38 @@ class SoftRobotBasicEnvironment():
 
         return self.bullet.getQuaternionFromEuler([roll, pitch, yaw]),[roll, pitch, yaw]
 
-    def is_gripper_in_contact(self):
-        list_of_contacts = self.bullet.getContactPoints(bodyA = self._robot_bodies[-3], linkIndexA = -1)
-        if len (list_of_contacts)>0:
-            return True
-        else:
-            return False
+    def is_robot_in_contact(self,obj_id):
+        
+        for body in self._robot_bodies:
+            # Get AABBs of the objects
+            aabb1 = self.bullet.getAABB(body)
+            aabb2 = self.bullet.getAABB(obj_id)
+
+            # Check for overlap
+            overlap = (aabb1[0][0] <= aabb2[1][0] and aabb1[1][0] >= aabb2[0][0] and
+                    aabb1[0][1] <= aabb2[1][1] and aabb1[1][1] >= aabb2[0][1] and
+                    aabb1[0][2] <= aabb2[1][2] and aabb1[1][2] >= aabb2[0][2])
+            
+            if overlap:
+                return True
+            
+        return False
+
+        
+    def is_gripper_in_contact(self,obj_id):
+        # list_of_contacts = self.bullet.getContactPoints(bodyA = self._robot_bodies[-3], linkIndexA = -1)
+        # if len (list_of_contacts)>0:
+        #     return True
+        # else:
+        #     return False
+        aabb1 = self.bullet.getAABB(self._robot_bodies[-3])
+        aabb2 = self.bullet.getAABB(obj_id)
+
+        # Check for overlap
+        return (aabb1[0][0] <= aabb2[1][0] and aabb1[1][0] >= aabb2[0][0] and
+                aabb1[0][1] <= aabb2[1][1] and aabb1[1][1] >= aabb2[0][1] and
+                aabb1[0][2] <= aabb2[1][2] and aabb1[1][2] >= aabb2[0][2])
+        
     
 
     def suction_grasp(self,enable=True):
@@ -182,7 +208,7 @@ class SoftRobotBasicEnvironment():
         positions = [(sol[0, i], sol[2, i], sol[1, i]) for i in idx]
 
         # Create a body at each position
-        self._robot_bodies = [self.bullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=shape,
+        self._robot_bodies = [self.bullet.createMultiBody(baseMass=0, baseCollisionShapeIndex=shape,
                                                 baseVisualShapeIndex=visualShapeId,
                                                 basePosition=pos + self._base_pos) for pos in positions]
 
