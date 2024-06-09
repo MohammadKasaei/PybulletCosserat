@@ -163,7 +163,7 @@ class SoftManipulatorEnv(gym.Env):
         self.distance_obj = np.linalg.norm(self.desired_pos-self.obj_pos)
         # self.distance_obj_tip = np.linalg.norm(self.pos-self.obj_pos)
 
-        reward = (math.exp(-300*(self.distance_obj**2))) + (0.5 if touch >5 else 0)
+        reward = (math.exp(-300*(self.distance_obj**2))) + (0.5 if touch >0 else 0)
         observation = self.observe()
         done = True
         

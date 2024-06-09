@@ -11,11 +11,18 @@
             "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_pushing"
         },
         {
-            "name": "gym env obs",
+            "name": "reacher obs",
             "type": "debugpy",
             "request": "launch",
             "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_obs"
         },
+        {
+            "name": "reacher",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_reacher"
+        },
+
         {
             "name": "gym env quad",
             "type": "debugpy",
