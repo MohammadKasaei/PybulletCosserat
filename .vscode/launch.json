@@ -17,6 +17,13 @@
             "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_obs"
         },
         {
+            "name": "gym env quad",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_qauad"
+        },
+   
+        {
             "name": "gym env",
             "type": "debugpy",
             "request": "launch",

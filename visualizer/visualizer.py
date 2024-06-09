@@ -37,7 +37,7 @@ class ODE():
         R0 = np.eye(3,3)
         R0 = np.reshape(R0,(9,1))
         y0 = np.concatenate((r0, R0), axis=0)
-               
+        self.l0 = 100e-3       
         self.states = np.squeeze(np.asarray(y0))
         self.y0 = np.copy(self.states)
         

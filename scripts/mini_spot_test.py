@@ -9,9 +9,9 @@ from pybullet_env.BasicEnvironment import SoftRobotBasicEnvironment
 
 
 class A1Env():
-    def __init__(self) -> None:            
-        self.physicsClient = p.connect(p.GUI)
-        self._pybullet = p
+    def __init__(self, gui = True) -> None:            
+        self.physicsClient = p.connect(p.GUI if gui else p.DIRECT)
+        self.bullet = p
         self._samplingTime = 0.005
         p.setTimeStep(self._samplingTime)
 
@@ -21,6 +21,10 @@ class A1Env():
         self.FloorId = p.loadURDF("plane.urdf",[0,0,-0.])        
         self.robotID = p.loadURDF('a1/a1.urdf', [0,0,0.44])
         
+        p.configureDebugVisualizer(p.COV_ENABLE_GUI, 0)
+        # p.resetDebugVisualizerCamera(cameraDistance=0.4, cameraYaw=180, cameraPitch=-35,
+        #                             cameraTargetPosition=[0., 0, 0.1])
+    
         #Lock joints in place
         numJoints = p.getNumJoints(self.robotID)
         for j in range(numJoints):
@@ -439,7 +443,7 @@ if __name__ == "__main__":
     env.add_harmony_box([0.4,0.14,0])
 
     
-    soft_robot_1 = SoftRobotBasicEnvironment( bullet = env._pybullet,number_of_segment=4)
+    soft_robot_1 = SoftRobotBasicEnvironment( bullet = env.bullet,number_of_segment=4)
     base_link_id = None
 
     env.add_a_cube([0.7,0.1,0.3],[0.3,0.4,0.02],mass=0.1,color=[0.7,0.3,0.4,1])
@@ -472,21 +476,21 @@ if __name__ == "__main__":
         sf1_gripper_pos    = 0.00
         
         p0,o0 = env.get_ee_state()
-        p0,o0 = env._pybullet.multiplyTransforms(p0, o0, [0.23, 0.0,0.1], [0,0,0,1])
+        p0,o0 = env.bullet.multiplyTransforms(p0, o0, [0.23, 0.0,0.1], [0,0,0,1])
         angle = np.pi
-        rotation_quaternion = env._pybullet.getQuaternionFromEuler([angle, 0, angle/2])
+        rotation_quaternion = env.bullet.getQuaternionFromEuler([angle, 0, angle/2])
         
-        new_pos, new_ori = env._pybullet.multiplyTransforms(p0, o0, [0,0,0], rotation_quaternion)
-        base_orin = env._pybullet.getEulerFromQuaternion(new_ori)
+        new_pos, new_ori = env.bullet.multiplyTransforms(p0, o0, [0,0,0], rotation_quaternion)
+        base_orin = env.bullet.getEulerFromQuaternion(new_ori)
         if base_link_id is None:
-            base_link_shape = env._pybullet.createVisualShape(env._pybullet.GEOM_BOX, halfExtents=[0.025, 0.025, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
-            base_link_pos, base_link_ori = env._pybullet.multiplyTransforms(new_pos, new_ori, [0,-0.02,0], [0,0,0,1])
-            base_link_id    = env._pybullet.createMultiBody(baseMass=0, baseCollisionShapeIndex=base_link_shape,
+            base_link_shape = env.bullet.createVisualShape(env.bullet.GEOM_BOX, halfExtents=[0.025, 0.025, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
+            base_link_pos, base_link_ori = env.bullet.multiplyTransforms(new_pos, new_ori, [0,-0.02,0], [0,0,0,1])
+            base_link_id    = env.bullet.createMultiBody(baseMass=0, baseCollisionShapeIndex=base_link_shape,
                                                         baseVisualShapeIndex=base_link_shape,
                                                         basePosition= base_link_pos , baseOrientation=base_link_ori)
         else:
-            base_link_pos, base_link_ori = env._pybullet.multiplyTransforms(new_pos, new_ori, [0,-0.02,0.0], [0,0,0,1])
-            env._pybullet.resetBasePositionAndOrientation(base_link_id, base_link_pos , base_link_ori)
+            base_link_pos, base_link_ori = env.bullet.multiplyTransforms(new_pos, new_ori, [0,-0.02,0.0], [0,0,0,1])
+            env.bullet.resetBasePositionAndOrientation(base_link_id, base_link_pos , base_link_ori)
         
         # cam_pos = 0.8*cam_pos + 0.2*np.array([p0[0],0,0.2])
         

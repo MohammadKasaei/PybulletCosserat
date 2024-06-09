@@ -29,7 +29,7 @@ class SoftManipulatorEnv(gym.Env):
         self._gui  = gui
         
         
-        self._env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5,gui=self._gui)
+        self._env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=3,gui=self._gui)
         base_link_shape = self._env.bullet.createVisualShape(self._env.bullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
         base_link_pos, base_link_ori = self._env.bullet.multiplyTransforms([0,0,0.51], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
         base_link_id    = self._env.bullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
@@ -46,23 +46,21 @@ class SoftManipulatorEnv(gym.Env):
         
         # self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
         self._initial_pos = [0.1,0.0,0.041]
-        self.obj_id = self._env.add_a_cube(self._initial_pos,[0.08,0.08,0.08],mass=0.01,color=[1,0,1,1])
+        self.obj_id = self._env.add_a_cube(self._initial_pos,[0.08,0.08,0.08],mass=0.05,color=[1,0,1,1])
 
         self._env.bullet.resetDebugVisualizerCamera(cameraDistance=0.75, cameraYaw=35, cameraPitch=-30, cameraTargetPosition=[0,0,0])
 
         self.reset()
             
         ### IK
-        self.action_space = spaces.Box(low=np.array([-0.02,-0.51,-0.02,-1,
-                                                     -0.02,-0.51,-0.02,-1,
-                                                     -0.02,-0.51,-0.02,-1,
-                                                     -0.02,-0.51,-0.02,-1,
-                                            -0.02,-1,-0.02,-0.51,-0.02,-1]),
-                                       high=np.array([0.02,1,0.02,1,
-                                                     0.02,1,0.02,1,
-                                                     0.02,1,0.02,1,
-                                                     0.02,1,0.02,1,
-                                              0.03,1,0.02,1,0.02,1]), dtype="float32")
+        self.action_space = spaces.Box(low=np.array([-0.02,-5,
+                                                     -0.02,-5,
+                                                     -0.02,-5,
+                                                     -0.02,-5]),
+                                       high=np.array([0.02,5,
+                                                      0.02,5,
+                                                      0.02,5,
+                                                      0.02,5]), dtype="float32")
         
         observation_bound = np.array([1, 1, 1]) # pos 
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
@@ -84,38 +82,23 @@ class SoftManipulatorEnv(gym.Env):
 
     def step(self, action):
 
-        # assert self.action_space.contains(action)
+        touch  = 0
         for i in range(50):
             t = i*0.005    
-            seg1_cable_1   = 0*action[0]*np.sin(action[1]*np.pi*t)
-            seg1_cable_2   = 0*action[2]*np.sin(action[3]*np.pi*t)
+            seg1_cable_1   = action[0]*np.sin(action[1]*np.pi*t)
+            seg1_cable_2   = action[2]*np.sin(action[3]*np.pi*t)
             
             seg2_cable_1   = action[4]*np.sin(action[5]*np.pi*t)
             seg2_cable_2   = action[6]*np.sin(action[7]*np.pi*t)
             
-            seg3_cable_1   = action[8]*np.sin(action[9]*np.pi*t)
-            seg3_cable_2   = action[10]*np.sin(action[11]*np.pi*t)
-            
-            seg4_cable_1   = action[12]*np.sin(action[13]*np.pi*t)
-            seg4_cable_2   = action[14]*np.sin(action[15]*np.pi*t)
-            
-            seg5_cable_0   = 0*action[16]*np.sin(action[17]*np.pi*t)
-            seg5_cable_1   = 0*action[18]*np.sin(action[19]*np.pi*t)
-            seg5_cable_2   = 0*action[20]*np.sin(action[21]*np.pi*t)
-            
-            
-
             self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, seg1_cable_1, seg1_cable_2,
-                                                                                0.0, seg2_cable_1, seg2_cable_2,
-                                                                                0.0, seg3_cable_1, seg3_cable_2,
-                                                                                0.0, seg4_cable_1, seg4_cable_2,                                                                               
-                                                                        seg5_cable_0, seg1_cable_2, seg5_cable_1, seg5_cable_2]),
+                                                                                0.005, seg2_cable_1, seg2_cable_2]),
                                                 base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
             
             
             if self._env.is_gripper_in_contact(self.obj_id):
                 # Calculate the direction from object1 to object2
-                
+                touch += 1
                 pos1, _ = self._env.bullet.getBasePositionAndOrientation(self._env._robot_bodies[-3])
                 pos2, _ = self._env.bullet.getBasePositionAndOrientation(self.obj_id)
                 direction = [pos2[i] - pos1[i] for i in range(3)]
@@ -124,7 +107,7 @@ class SoftManipulatorEnv(gym.Env):
                 norm = sum(x**2 for x in direction) ** 0.5
                 direction = [x / norm for x in direction]
                 
-                force_magnitude = 0.25  # Adjust this value as needed
+                force_magnitude = 1  # Adjust this value as needed
                 force = [force_magnitude * x for x in direction]
                 self._env.bullet.applyExternalForce(self.obj_id, -1, force, [0, 0, 0],  self._env.bullet.WORLD_FRAME)
                 self._env.bullet.stepSimulation()
@@ -135,21 +118,29 @@ class SoftManipulatorEnv(gym.Env):
         self.distance_obj = np.linalg.norm(self.desired_pos-self.obj_pos)
         # self.distance_obj_tip = np.linalg.norm(self.pos-self.obj_pos)
 
-        reward = (math.exp(-300*(self.distance_obj**2))) #+(0.1*math.exp(-(self.distance**2)))-0.1
+        reward = (math.exp(-50*(self.distance_obj**2))) + (0.5 if touch > 0 else 0)
         
         observation = self.observe()
-        terminal = True
+        done = True
         if self._gui:
             print (f"rew:{reward:0.4f}")
             self._env._dummy_sim_step(1)
         
 
-        info = {"rew":reward}
-        return observation, reward, terminal, info
+        info = {}
+        if done:
+            info = {
+                'episode': {
+                    'r': reward,
+                    'l': self.current_step
+                }
+            }
+        return observation, reward, done, info
 
 
     def reset(self):
-        
+        self.current_step = 1
+
         self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, 0.0, 0.0,
                                                                                0.0, 0.0, 0.0,
                                                                                0.0, 0.0, 0.0,
@@ -218,7 +209,7 @@ def make_env(env_id, rank, seed=0):
 if __name__ =="__main__":
     
     num_cpu_core = 1
-    max_epc = 200000
+    max_epc = 500000
     
     # from gym.envs.registration import register
     # register(
