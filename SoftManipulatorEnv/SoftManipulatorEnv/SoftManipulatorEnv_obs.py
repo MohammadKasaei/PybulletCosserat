@@ -146,10 +146,8 @@ def make_env(env_id, rank, seed=0):
     """
     def _init():
         env = SoftManipulatorEnv(gui=False)
-        #DummyVecEnv([lambda: CustomEnv()]) #gym.make(env_id)
         env.seed(seed + rank)
         return env
-    # set_global_seeds(seed)
     set_random_seed(seed)
     return _init
 
