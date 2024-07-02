@@ -124,7 +124,9 @@ class SoftManipulatorEnv(gym.Env):
         done = True
         
         if self._gui:
-            print (f"rew:{reward:0.4f}")
+            # print (f"rew:{reward:0.4f}")
+            print (f"{self.distance:0.4f}")
+
             self._env._dummy_sim_step(10)
         
         info = {}
@@ -180,7 +182,7 @@ class SoftManipulatorEnv(gym.Env):
         if (self._gui): #Test env
             self._env._set_marker(self.desired_pos)
         
-            print ("reset Env 0")
+            # print ("reset Env 0")
     
         observation = self.observe()
         
@@ -287,12 +289,12 @@ if __name__ =="__main__":
     # model = SAC.load("logs/learnedPolicies/model_20240608-081843", env = sf_env) # good model reacher
     # model = SAC.load("logs/learnedPolicies/model_20240608-151645", env = sf_env) # 2M
     # model = SAC.load("logs/learnedPolicies/model_20240608-173402", env = sf_env) # 2M
-    model = SAC.load("logs/learnedPolicies/model_20240609-013942_Best_SAC_Reacher", env = sf_env) # 2M best 
+    model = SAC.load("logs/learnedPolicies/model_20240609-013942_Best_SAC_Reacher_obs", env = sf_env) # 2M best 
     
     
     
     obs = sf_env.reset()
-    timesteps = 5000
+    timesteps = 100
     for i in range(timesteps):
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = sf_env.step(action)

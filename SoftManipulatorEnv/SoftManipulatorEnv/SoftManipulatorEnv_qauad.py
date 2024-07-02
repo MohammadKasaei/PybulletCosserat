@@ -29,9 +29,9 @@ class SoftManipulatorEnv(gym.Env):
         self.simTime = 0
         self._gui  = gui 
         
-        # self._env = A1Env(gui=gui)
-        # self.soft_robot = SoftRobotBasicEnvironment(bullet = self._env.bullet,number_of_segment=3)
-        self.soft_robot = SoftRobotBasicEnvironment(number_of_segment=3,gui=gui)
+        self._env = A1Env(gui=gui)
+        self.soft_robot = SoftRobotBasicEnvironment(bullet = self._env.bullet,number_of_segment=3)
+        # self.soft_robot = SoftRobotBasicEnvironment(number_of_segment=3,gui=gui)
         self._base_link_id = None
         
         # p0,o0 = self._env.get_ee_state()
@@ -54,7 +54,7 @@ class SoftManipulatorEnv(gym.Env):
             self.soft_robot.bullet.resetBasePositionAndOrientation(self._base_link_id, base_link_pos , base_link_ori)
         
         self._initial_pos = [0.42,0.0,0.041]
-        self.obj_id = self.soft_robot.add_a_cube(self._initial_pos,[0.1,0.1,0.1],mass=0.05,color=[1,0,1,1])
+        self.obj_id = self.soft_robot.add_a_cube(self._initial_pos,[0.1,0.1,0.1],mass=0.025,color=[1,0,1,1])
 
         self.soft_robot.move_robot_ori(action=np.array([0.08 ,0.0, 0.01, 
                                                       0., 0.0, 0.0,
@@ -70,14 +70,18 @@ class SoftManipulatorEnv(gym.Env):
         self.reset()
             
         ### IK
-        self.action_space = spaces.Box(low=np.array([-0.01,-np.pi*2,
+        self.action_space = spaces.Box(low=np.array([-0.015,-np.pi*2,
+                                                     -0.005,-np.pi*2,
+                                                     -0.01,-np.pi*2,
                                                      -0.01,-np.pi*2,
                                                      -0.01,-np.pi*2,
                                                      -0.01,-np.pi*2]),
-                                       high=np.array([0.01,np.pi*2,
-                                                      0.001,np.pi*2,
+                                       high=np.array([0.015,np.pi*2,
+                                                      0.005,np.pi*2,
+                                                      0.01,np.pi*2,
+                                                      0.005,np.pi*2,
                                                       0.01, np.pi*2,
-                                                      0.001,np.pi*2]), dtype="float32")
+                                                      0.005,np.pi*2]), dtype="float32")
         observation_bound = np.array([1, 1, 1]) # target, pos, ori  
          
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
@@ -103,58 +107,55 @@ class SoftManipulatorEnv(gym.Env):
 
         
         touch = 0
-        for i in range(50):
+        for i in range(200):
             t = i*0.01    
-            cable_1   = action[0]*np.sin(action[1]*np.pi*t)
-            cable_2   = action[2]*np.sin(action[3]*np.pi*t)
+            cable_1   = action[0]*np.sin(action[1]*t)
+            cable_2   = 0.013 + action[2]*np.sin(action[3]*t)
             
-            cable_3   = action[4]*np.sin(action[5]*np.pi*t)
-            cable_4   = action[6]*np.sin(action[7]*np.pi*t)
+            cable_3   = action[4]*np.sin(action[5]*t)
+            cable_4   = action[6]*np.sin(action[7]*t)            
+            
+            cable_5   = action[8]*np.sin(action[9]*t)
+            cable_6   = action[10]*np.sin(action[11]*t)
+
                     
             last_tip_pos, _ = self.soft_robot.bullet.getBasePositionAndOrientation(self.soft_robot._robot_bodies[-3])
 
-            self._shape, self._ode_sol = self.soft_robot.move_robot_ori(action=np.array([0.08, 0, 0.015, 
-                                                                                         0., cable_1, cable_2,
-                                                                                         0., cable_3, cable_4]),
+            self._shape, self._ode_sol = self.soft_robot.move_robot_ori(action=np.array([0.08, cable_1, cable_2, 
+                                                                                         0., cable_3, cable_4,
+                                                                                         0., cable_5, cable_6]),
                                                                         base_pos = self.new_pos, base_orin = self.base_orin,camera_marker=False)
             
 
             
             
-            if self.soft_robot.is_gripper_in_contact(self.obj_id):
+            if self.soft_robot.is_tip_in_contact(self.obj_id):
                 touch +=1
             
                 pos1, _ = self.soft_robot.bullet.getBasePositionAndOrientation(self.soft_robot._robot_bodies[-3])
                 vel1    = np.array(pos1) - np.array(last_tip_pos) / 0.01
                 
-                # vel1, _ = self.soft_robot.bullet.getBaseVelocity(self.soft_robot._robot_bodies[-3])
-
                 pos2, _ = self.soft_robot.bullet.getBasePositionAndOrientation(self.obj_id)
                 direction = [pos2[i] - pos1[i] for i in range(3)]
                 
                 # Normalize the direction vector
                 norm = sum(x**2 for x in direction) ** 0.5
                 direction = [x / norm for x in direction]
-                
-                
+
                 # Calculate the velocity magnitude
                 velocity_magnitude = sum(v**2 for v in vel1) ** 0.5
 
                 # Determine the force magnitude based on the velocity magnitude
-                force_magnitude = 0.02 * (1 + velocity_magnitude)  # Example scaling function
+                force_magnitude = 0.035 * (1 + velocity_magnitude)  # Example scaling function
                 # Compute the force vector
                 force = [force_magnitude * x for x in direction]
 
-                # force_magnitude = 0.5 * (1 + velocity_magnitude)  # Adjust this value as needed
-                # force = [force_magnitude * x for x in direction]
                 self.soft_robot.bullet.applyExternalForce(self.obj_id, -1, force, [0, 0, 0],  self.soft_robot.bullet.WORLD_FRAME)
-                self.soft_robot.bullet.stepSimulation()
+                self.soft_robot.wait(0.2)
                 
                 # print (f"force: {force}")
                     
-                    
-            # for i in range(30):
-            #     self._env.bullet.stepSimulation()
+
                     
         self.obj_pos = np.array(self.soft_robot.bullet.getBasePositionAndOrientation(self.obj_id)[0])
         # self.obj_pos[2] = 0
@@ -166,9 +167,12 @@ class SoftManipulatorEnv(gym.Env):
         reward = (math.exp(-300*(self.distance_obj**2))) + (0.5 if touch >0 else 0)
         observation = self.observe()
         done = True
-        
+
         if self._gui:
-            print (f"rew:{reward:0.4f}")
+            # print (f"rew:{reward:0.4f}")
+            abs_err = np.abs(self.desired_pos - self.obj_pos)
+
+            print (f"{abs_err[0]:0.4f},{abs_err[1]:0.4f},{self.distance_obj:0.4f}")
             self.soft_robot._dummy_sim_step(1)
         
 
@@ -187,13 +191,13 @@ class SoftManipulatorEnv(gym.Env):
         
         self.current_step = 1
 
-        self.soft_robot.move_robot_ori(action=np.array([0.08, 0, 0.015,  
+        self.soft_robot.move_robot_ori(action=np.array([0.08, 0, 0.013,  
                                                       0., 0.0, -0.00,
                                                      0., 0.0, 0.0]),
                                 base_pos = self.new_pos, base_orin = self.base_orin,camera_marker=False)
         
         des_x  = np.random.uniform(low=0.55, high=0.7, size=(1,))
-        des_y  = np.random.uniform(low=-0.3, high=0.3, size=(1,))
+        des_y  = np.random.uniform(low=-0.1, high=0.1, size=(1,))
         des_z  = 0*np.random.uniform(low= 0.0, high=0.1, size=(1,))
         self.desired_pos = np.squeeze(np.array((des_x,des_y,des_z)))
         
@@ -208,8 +212,10 @@ class SoftManipulatorEnv(gym.Env):
         if (self._gui): #Test env
             self.soft_robot._set_marker(self.desired_pos)
         
-            print ("reset Env 0")
-    
+            # print ("reset Env 0")
+            
+            self.soft_robot.wait(0.5)
+
         observation = self.observe()
         
         return observation  # reward, done, info can't be included
@@ -240,9 +246,9 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    Train = True
-    num_cpu_core = 65
-    max_epc = 2000000
+    Train = False
+    num_cpu_core = 60 if Train else 1
+    max_epc = 1000000
 
 
     if (num_cpu_core == 1):
@@ -255,8 +261,8 @@ if __name__ =="__main__":
         timestr   = time.strftime("%Y%m%d-%H%M%S")
         logdir    = "logs/learnedPolicies/log_"  + timestr
 
-        model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
-        
+        # model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
+        model = SAC.load("logs/learnedPolicies/model_20240611-022827", env = sf_env) 
         model.learn(total_timesteps=max_epc,log_interval=10)
         timestr   = time.strftime("%Y%m%d-%H%M%S")
         modelName = "logs/learnedPolicies/model_"+ timestr
@@ -266,9 +272,11 @@ if __name__ =="__main__":
         
     else:
             
-        model = SAC.load("logs/learnedPolicies/model_20240606-194229", env = sf_env) # good model for 5 seg IK
+        # model = SAC.load("logs/learnedPolicies/model_20240611-022827", env = sf_env) # good model for 1M
+        model = SAC.load("logs/learnedPolicies/model_20240611-225749_best_quad", env = sf_env) # good model for 1M
+        
         obs = sf_env.reset()
-        timesteps = 5000
+        timesteps = 50
         for i in range(timesteps):
             action, _states = model.predict(obs, deterministic=True)
             obs, reward, done, info = sf_env.step(action)

@@ -96,21 +96,22 @@ class SoftManipulatorEnv(gym.Env):
                                                 base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
             
             
-            if self._env.is_gripper_in_contact(self.obj_id):
+            if self._env.is_tip_in_contact(self.obj_id):
                 # Calculate the direction from object1 to object2
                 touch += 1
-                pos1, _ = self._env.bullet.getBasePositionAndOrientation(self._env._robot_bodies[-3])
-                pos2, _ = self._env.bullet.getBasePositionAndOrientation(self.obj_id)
-                direction = [pos2[i] - pos1[i] for i in range(3)]
+                self._env.apply_force(force_magnitude = 1, obj_id = self.obj_id)
+                # pos1, _ = self._env.bullet.getBasePositionAndOrientation(self._env._robot_bodies[-3])
+                # pos2, _ = self._env.bullet.getBasePositionAndOrientation(self.obj_id)
+                # direction = [pos2[i] - pos1[i] for i in range(3)]
                 
-                # Normalize the direction vector
-                norm = sum(x**2 for x in direction) ** 0.5
-                direction = [x / norm for x in direction]
+                # # Normalize the direction vector
+                # norm = sum(x**2 for x in direction) ** 0.5
+                # direction = [x / norm for x in direction]
                 
-                force_magnitude = 1  # Adjust this value as needed
-                force = [force_magnitude * x for x in direction]
-                self._env.bullet.applyExternalForce(self.obj_id, -1, force, [0, 0, 0],  self._env.bullet.WORLD_FRAME)
-                self._env.bullet.stepSimulation()
+                # force_magnitude = 1  # Adjust this value as needed
+                # force = [force_magnitude * x for x in direction]
+                # self._env.bullet.applyExternalForce(self.obj_id, -1, force, [0, 0, 0],  self._env.bullet.WORLD_FRAME)
+                # self._env.bullet.stepSimulation()
                     
         self.obj_pos = np.array(self._env.bullet.getBasePositionAndOrientation(self.obj_id)[0])
 

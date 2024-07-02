@@ -124,7 +124,8 @@ class SoftManipulatorEnv(gym.Env):
         done = True
         
         if self._gui:
-            print (f"rew:{reward:0.4f}")
+            # print (f"rew:{reward:0.4f}")
+            print (f"{self.distance:0.4f}")
             self._env._dummy_sim_step(10)
         
         info = {}
@@ -180,7 +181,7 @@ class SoftManipulatorEnv(gym.Env):
         if (self._gui): #Test env
             self._env._set_marker(self.desired_pos)
         
-            print ("reset Env 0")
+            # print ("reset Env 0")
     
         observation = self.observe()
         
@@ -277,24 +278,15 @@ if __name__ =="__main__":
     
     
         
-    # # model = SAC.load("logs/learnedPolicies/model_20240603-085205.zip", env = sf_env)
-    # model = SAC.load("logs/learnedPolicies/model_20240605-144712", env = sf_env)
-    # model = SAC.load("logs/learnedPolicies/model_20240605-145821", env = sf_env)
-    # model = SAC.load("logs/learnedPolicies/model_20240605-160858", env = sf_env)
-    # model = SAC.load("logs/learnedPolicies/model_20240605-175333", env = sf_env) # good model for 5 seg IK
-    # model = SAC.load("logs/learnedPolicies/model_20240605-184526", env = sf_env) # good model reacher
-    # model = SAC.load("logs/learnedPolicies/model_20240605-190834", env = sf_env) # good model reacher
-    # model = SAC.load("logs/learnedPolicies/model_20240608-081843", env = sf_env) # good model reacher
-    # model = SAC.load("logs/learnedPolicies/model_20240608-151645", env = sf_env) # 2M
-    # model = SAC.load("logs/learnedPolicies/model_20240608-173402", env = sf_env) # 2M
+
     # model = SAC.load("logs/learnedPolicies/model_20240609-013942_Best_SAC_Reacher", env = sf_env) # 2M reacher with obs best 
-    model = SAC.load("logs/learnedPolicies/model_20240609-180141", env = sf_env) # 2M reacher with obs best 
+    model = SAC.load("logs/learnedPolicies/model_20240609-180141_best_sac_reacher", env = sf_env) # 2M reacher  best 
     
     
     
     
     obs = sf_env.reset()
-    timesteps = 5000
+    timesteps = 100
     for i in range(timesteps):
         action, _states = model.predict(obs, deterministic=True)
         obs, reward, done, info = sf_env.step(action)

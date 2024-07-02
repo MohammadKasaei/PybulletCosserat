@@ -7,9 +7,9 @@ import numpy as np
 if __name__ == '__main__':
 
     env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5)
-    base_link_shape = env._pybullet.createVisualShape(env._pybullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
-    base_link_pos, base_link_ori = env._pybullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
-    base_link_id    = env._pybullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
+    base_link_shape = env.bullet.createVisualShape(env.bullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
+    base_link_pos, base_link_ori = env.bullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
+    base_link_id    = env.bullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
                                                         baseVisualShapeIndex=base_link_shape,
                                                         basePosition= base_link_pos , baseOrientation=base_link_ori)
        
@@ -55,8 +55,8 @@ if __name__ == '__main__':
                                             0.0, sf_left_seg5_cable_1, sf_left_seg5_cable_2]),
                                     base_pos=[0,0,0.5],base_orin = np.array([-np.pi/2,0,0]), camera_marker=False)
         
-        marker_pos, marker_ori = env._pybullet.multiplyTransforms(shape[-1][:3], shape[-1][3:], [0.0,0.0,0.0], [0,0,0,1])
+        marker_pos, marker_ori = env.bullet.multiplyTransforms(shape[-1][:3], shape[-1][3:], [0.0,0.0,0.0], [0,0,0,1])
 
-        env._set_marker(marker_pos,marker_ori)
-        env.set_grasp_width(sf_left_gripper_pos)
+        # env._set_marker(marker_pos,marker_ori)
+        # env.set_grasp_width(sf_left_gripper_pos)
         

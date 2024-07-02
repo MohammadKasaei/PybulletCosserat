@@ -5,10 +5,30 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Manipulator-Rigid_Soft - PD control",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.Test_manipulator_single_PD"
+        },
+
+        {
+            "name": "Manipulator-Rigid_Soft tele op",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.Test_manipulator_single_tele_op"
+        },
+        
+        {
             "name": "gym env-push",
             "type": "debugpy",
             "request": "launch",
             "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_pushing"
+        },
+        {
+            "name": "gym control policy",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_control_policy"
         },
         {
             "name": "reacher obs",

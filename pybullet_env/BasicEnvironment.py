@@ -122,7 +122,7 @@ class SoftRobotBasicEnvironment():
         return False
 
         
-    def is_gripper_in_contact(self,obj_id):
+    def is_tip_in_contact(self,obj_id):
         # list_of_contacts = self.bullet.getContactPoints(bodyA = self._robot_bodies[-3], linkIndexA = -1)
         # if len (list_of_contacts)>0:
         #     return True
@@ -137,6 +137,19 @@ class SoftRobotBasicEnvironment():
                 aabb1[0][2] <= aabb2[1][2] and aabb1[1][2] >= aabb2[0][2])
         
     
+    def apply_force(self,force_magnitude,obj_id):
+        pos1, _ = self.bullet.getBasePositionAndOrientation(self._robot_bodies[-3])
+        pos2, _ = self.bullet.getBasePositionAndOrientation(obj_id)
+        direction = [pos2[i] - pos1[i] for i in range(3)]
+        
+        # Normalize the direction vector
+        norm = sum(x**2 for x in direction) ** 0.5
+        direction = [x / norm for x in direction]
+        
+        # force_magnitude = 1  # Adjust this value as needed
+        force = [force_magnitude * x for x in direction]
+        self._env.bullet.applyExternalForce(obj_id, -1, force, [0, 0, 0],  self.bullet.WORLD_FRAME)
+        self.bullet.stepSimulation()
 
     def suction_grasp(self,enable=True):
         if enable:

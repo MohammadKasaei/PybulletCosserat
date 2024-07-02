@@ -234,7 +234,7 @@ if __name__ == "__main__":
     prevPose = x0
     gt = 0.0
     for i in range(int(tf/ts)):
-        if (soft_robot_1.is_gripper_in_contact()):
+        if (soft_robot_1.is_tip_in_contact()):
             print("1")
             soft_robot_1.suction_grasp()
        
