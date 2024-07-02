@@ -250,18 +250,15 @@ if __name__ =="__main__":
     num_cpu_core = 60 if Train else 1
     max_epc = 1000000
 
-
     if (num_cpu_core == 1):
         sf_env = SoftManipulatorEnv()
     else:
         sf_env = SubprocVecEnv([make_env(i, i) for i in range(1, num_cpu_core)]) # Create the vectorized environment
-    
-    
+        
     if Train:
         timestr   = time.strftime("%Y%m%d-%H%M%S")
         logdir    = "logs/learnedPolicies/log_"  + timestr
 
-        # model = SAC("MlpPolicy", sf_env, verbose=1, tensorboard_log=logdir)
         model = SAC.load("logs/learnedPolicies/model_20240611-022827", env = sf_env) 
         model.learn(total_timesteps=max_epc,log_interval=10)
         timestr   = time.strftime("%Y%m%d-%H%M%S")
@@ -272,9 +269,7 @@ if __name__ =="__main__":
         
     else:
             
-        # model = SAC.load("logs/learnedPolicies/model_20240611-022827", env = sf_env) # good model for 1M
-        model = SAC.load("logs/learnedPolicies/model_20240611-225749_best_quad", env = sf_env) # good model for 1M
-        
+        model = SAC.load("logs/learnedPolicies/model_20240611-225749_best_quad", env = sf_env)         
         obs = sf_env.reset()
         timesteps = 50
         for i in range(timesteps):

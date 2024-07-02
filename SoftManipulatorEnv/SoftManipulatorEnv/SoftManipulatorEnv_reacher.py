@@ -141,41 +141,14 @@ class SoftManipulatorEnv(gym.Env):
 
     def reset(self):
         
-        # self._shape, self._ode_sol = self._env.move_robot_ori(action=np.array([0.0, 0.0, 0.0,
-        #                                                                 0.0, 0.0, 0.0,
-        #                                                                 0.0, 0.0, 0.0,
-        #                                                                 0.0, 0.0, 0.0,
-        #                                                                 0.0, 0.0, 0.0]),
-        #                                 base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
-    
+
         self.current_step = 1
 
         des_x  = np.random.uniform(low=-0.2, high=0.2, size=(1,))
         des_y  = np.random.uniform(low=-0.2, high=0.2, size=(1,))
         des_z  = np.random.uniform(low= 0.1, high=0.25, size=(1,))
         self.desired_pos = np.squeeze(np.array((des_x,des_y,des_z)))
-        # self.desired_pos = np.array((des_x,des_y,des_z))
-        
-        
-        # self._env.bullet.resetBasePositionAndOrientation(self.obj_id, self._initial_pos, [0,0,0,1])
-        # self.obj_pose = self._env.bullet.getBasePositionAndOrientation(self.obj_id)
 
-
-        # for i in range(10):
-        #     self._env.bullet.stepSimulation()
-
-        # self.ol    = np.random.uniform(low= -0.03, high=0.04, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
-        
-        # self.ol    = np.random.uniform(low= -0.01, high=0.01, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.005, high=0.005, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.005, high=0.005, size=(1,))[0]
-        
-        # self.ol    = np.random.uniform(low= -0.005, high=0.005, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.003, high=0.003, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.003, high=0.003, size=(1,))[0]
-        
         
         
         if (self._gui): #Test env
@@ -240,78 +213,40 @@ def make_env(env_id, rank, seed=0):
 
 if __name__ =="__main__":
     
-    num_cpu_core = 1
-    
+    Train = True
+    num_cpu_core = 60 if Train else 1    
     max_epc = 2000000
-    
-    # from gym.envs.registration import register
-    # register(
-    #     id='SoftManipulatorEnv-v0',
-    #     entry_point='custom_env:SoftManipulatorEnv',
-    # )
 
     if (num_cpu_core == 1):
         sf_env = SoftManipulatorEnv()
     else:
         sf_env = SubprocVecEnv([make_env(i, i) for i in range(1, num_cpu_core)]) # Create the vectorized environment
-    
+
     timestr   = time.strftime("%Y%m%d-%H%M%S")
     logdir    = "logs/learnedPolicies/log_"  + timestr
-    # model = SAC.load("logs/learnedPolicies/model_20240608-161325", env = sf_env) # 2M
 
-    
-   
-    # Initialize the custom callback for logging rewards
-    # reward_logging_callback = RewardLoggingCallback(check_freq=100)
-    # callback_list = CallbackList([reward_logging_callback])
-    # model.learn(total_timesteps=max_epc,log_interval=10,callback=callback_list)
+    if Train:
 
-    # model = SAC("MlpPolicy", sf_env, verbose=0, tensorboard_log=logdir)
-    # # model = SAC.load("logs/learnedPolicies/model_20240608-173402", env = sf_env) # 2M
+        model = SAC("MlpPolicy", sf_env, verbose=0, tensorboard_log=logdir)
 
-    # model.learn(total_timesteps=max_epc,log_interval=100)
-    # timestr   = time.strftime("%Y%m%d-%H%M%S")
-    # modelName = "logs/learnedPolicies/model_"+ timestr
-    # model.save(modelName)
-    # sf_env.close()
-    # print(f"finished. The model saved at {modelName}")
+        model.learn(total_timesteps=max_epc,log_interval=100)
+        timestr   = time.strftime("%Y%m%d-%H%M%S")
+        modelName = "logs/learnedPolicies/model_"+ timestr
+        model.save(modelName)
+        sf_env.close()
+        print(f"finished. The model saved at {modelName}")
     
-    
+    else:
+        model = SAC.load("logs/learnedPolicies/model_20240609-180141_best_sac_reacher", env = sf_env) # 2M reacher  best 
         
-
-    # model = SAC.load("logs/learnedPolicies/model_20240609-013942_Best_SAC_Reacher", env = sf_env) # 2M reacher with obs best 
-    model = SAC.load("logs/learnedPolicies/model_20240609-180141_best_sac_reacher", env = sf_env) # 2M reacher  best 
-    
-    
-    
-    
-    obs = sf_env.reset()
-    timesteps = 100
-    for i in range(timesteps):
-        action, _states = model.predict(obs, deterministic=True)
-        obs, reward, done, info = sf_env.step(action)
-        sf_env._env._dummy_sim_step(1)
-        #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
-        #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
-        if done:
-            time.sleep(1)            
-            obs = sf_env.reset()
-            time.sleep(0.1)
+        obs = sf_env.reset()
+        timesteps = 100
+        for i in range(timesteps):
+            action, _states = model.predict(obs, deterministic=True)
+            obs, reward, done, info = sf_env.step(action)
             sf_env._env._dummy_sim_step(1)
-
-    # obs = sf_env.reset()
-    # timesteps = 5000000
-    # for i in range(timesteps):
-    #     t = i*0.005
-    #     sf1_seg1_cable_1   = .005*np.sin(0.05*np.pi*t)
-    #     obs, reward, done, info = sf_env.step(np.array([sf1_seg1_cable_1,0.0,0.01,0.0,0.002,0.0,0.0,0.0,0.0,0.0,0.0]))
-        
-        #callback_on_best = StopTrainingOnRewardThreshold(reward_threshold=-99.0, verbose=1)
-        #eval_callback = EvalCallback(env, callback_on_new_best=callback_on_best, verbose=1)
-        # if done:
-        #     time.sleep(1)
-            
-            # obs = sf_env.reset()
-            # time.sleep(0.1)
-            # sf_env._env._dummy_sim_step(1)
-
+            if done:
+                time.sleep(1)            
+                obs = sf_env.reset()
+                time.sleep(0.1)
+                sf_env._env._dummy_sim_step(1)
