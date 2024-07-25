@@ -758,7 +758,7 @@ class BasicEnvironment():
         rgb =  np.random.uniform(0.0,0.7,3)
         return np.concatenate((rgb,[1]))
     
-    def add_harmony_box(self, box_centre,ori_offset = [0.0, 0.0, 0.]):
+    def add_box(self, box_centre,ori_offset = [0.0, 0.0, 0.]):
         id1 = p.loadURDF("environment_Yumi/urdf/objects/box.urdf",
                          box_centre,
                          p.getQuaternionFromEuler(ori_offset),

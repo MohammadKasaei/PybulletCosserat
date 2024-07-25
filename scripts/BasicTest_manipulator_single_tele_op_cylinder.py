@@ -167,16 +167,27 @@ if __name__ == "__main__":
     env = BasicEnvironment()
     env.move_arm(target_pos= np.array([0.2,0.,0.35]), target_ori=[np.pi/2,np.pi/2,0],duration=0.01)
     env.wait(1)
-    soft_robot_1 = SoftRobotBasicEnvironment(bullet= env._pybullet,number_of_segment=2)
-    env.add_box([0.5,0,0])
-    env.add_a_cube([0.5,0.1,0.1],[0.025,0.025,0.025],mass=1)
-    env.add_a_cube([0.45,0.13,0.1],[0.025,0.025,0.025],mass=1,color=[0,1,0,1])
-    env.add_a_cube([0.48,0.08,0.1],[0.025,0.025,0.025],mass=1,color=[1,0,1,1])
-    
-    env.add_a_cube([0.5,0.1,0.3],[0.3,0.4,0.02],mass=0.1,color=[0.7,0.3,0.4,1])
-    
+    soft_robot_1 = SoftRobotBasicEnvironment(bullet= env._pybullet,number_of_segment=2,body_sphere_radius=0.005,number_of_sphere=50)
+    # env.add_box([0.5,0,0])
     env._pybullet.resetDebugVisualizerCamera(cameraDistance=0.6, cameraYaw=90, cameraPitch=-40, cameraTargetPosition=[0.5,0,0.5])
+    cylinder_shap_Id = env._pybullet.createVisualShape(env._pybullet.GEOM_MESH, fileName="/home/mohammad/Downloads/tree1.obj" )
+    cylinder_collision_Id = env._pybullet.createCollisionShape(env._pybullet.GEOM_MESH, fileName="/home/mohammad/Downloads/tree1.obj")
 
+    lung_id = env._pybullet.createMultiBody(baseMass=0.00, baseCollisionShapeIndex=cylinder_collision_Id,
+                                                    baseVisualShapeIndex=cylinder_shap_Id,
+                                                    basePosition=[0.55,-0.1,0.45], baseOrientation=env._pybullet.getQuaternionFromEuler([-np.pi/2,0,0]))
+    # env._pybullet.createMultiBody(baseMass=0, baseVisualShapeIndex=cylinder_shap_Id,
+    #                                 basePosition=[.65,0,0.4], baseOrientation=env._pybullet.getQuaternionFromEuler([-np.pi/2,0,0]))
+
+    # env.add_a_cube([0.5,0.01,0.01],[0.025,0.025,0.025],mass=1)
+
+    # env.add_a_cube([0.5,0.1,0.1],[0.025,0.025,0.025],mass=1)
+    # env.add_a_cube([0.45,0.13,0.1],[0.025,0.025,0.025],mass=1,color=[0,1,0,1])
+    # env.add_a_cube([0.48,0.08,0.1],[0.025,0.025,0.025],mass=1,color=[1,0,1,1])
+    
+    # env.add_a_cube([0.5,0.1,0.3],[0.3,0.4,0.02],mass=0.1,color=[0.7,0.3,0.4,1])
+    
+   
     
     keyLock = threading.Lock()
     keyThr = KeyboardThread(freq=30, lock=keyLock)
@@ -264,7 +275,7 @@ if __name__ == "__main__":
         
         # xd, xd_dot = get_ref(gt,traj_name)
         xd = x0 + np.array([ux,uy,uz])
-        print (f" {moving_base} \t {ux:3.3f} \t {uy:3.3f} \t {uz:3.3f} \t {xd[0]:3.3f} \t {xd[1]:3.3f} \t {xd[2]:3.3f} ")
+        print (f" {soft_robot_1.is_tip_in_contact(lung_id)} \t {moving_base} \t {ux:3.3f} \t {uy:3.3f} \t {uz:3.3f} \t {xd[0]:3.3f} \t {xd[1]:3.3f} \t {xd[2]:3.3f} ")
 
         xd_dot = np.array([0,0,0])
         
@@ -300,7 +311,7 @@ if __name__ == "__main__":
         env._dummy_sim_step(10)
 
         p0,o0 = env.get_ee_state()
-        p0,o0 = env._pybullet.multiplyTransforms(p0, o0, [0.025,-0.0,-0.0], [0,0,0,1])
+        p0,o0 = env._pybullet.multiplyTransforms(p0, o0, [0.005,-0.0,-0.0], [0,0,0,1])
         angle = -np.pi/2  # 90 degrees in radians
         rotation_quaternion = env._pybullet.getQuaternionFromEuler([0, 0, angle])
         new_pos, new_ori = env._pybullet.multiplyTransforms(p0, o0, [0,0,0], rotation_quaternion)

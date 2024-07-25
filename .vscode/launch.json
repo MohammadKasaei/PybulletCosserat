@@ -17,6 +17,12 @@
             "request": "launch",
             "module": "scripts.Test_manipulator_single_tele_op"
         },
+        {
+            "name": "Manipulator-Rigid_Soft tele op cylinder",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.BasicTest_manipulator_single_tele_op_cylinder"
+        },
         
         {
             "name": "gym env-push",
@@ -34,7 +40,7 @@
             "name": "reacher obs",
             "type": "debugpy",
             "request": "launch",
-            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_obs"
+            "module": "SoftManipulatorEnv.SoftManipulatorEnv.SoftManipulatorEnv_reacher_obs"
         },
         {
             "name": "reacher",

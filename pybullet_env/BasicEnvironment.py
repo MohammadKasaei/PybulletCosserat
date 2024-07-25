@@ -128,6 +128,7 @@ class SoftRobotBasicEnvironment():
         #     return True
         # else:
         #     return False
+        
         aabb1 = self.bullet.getAABB(self._robot_bodies[-3])
         aabb2 = self.bullet.getAABB(obj_id)
 
@@ -213,7 +214,7 @@ class SoftRobotBasicEnvironment():
 
         # visualShapeId_tip = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.01, 0.002, 0.001], rgbaColor=[1, 0, 0, 1])
         visualShapeId_tip = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.0, 0.002, 0.001], rgbaColor=[1, 0, 0, 1])
-        visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius + 0.005, rgbaColor=self._head_color)
+        visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_SPHERE, radius=radius + 0.0025, rgbaColor=self._head_color)
         # visualShapeId_tip_ = self.bullet.createVisualShape(self.bullet.GEOM_BOX, halfExtents=[0.025, 0.025, 0.025], rgbaColor=self._head_color)
 
         # Load the positions

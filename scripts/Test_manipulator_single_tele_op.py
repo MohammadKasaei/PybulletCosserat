@@ -168,7 +168,7 @@ if __name__ == "__main__":
     env.move_arm(target_pos= np.array([0.2,0.,0.35]), target_ori=[np.pi/2,np.pi/2,0],duration=0.01)
     env.wait(1)
     soft_robot_1 = SoftRobotBasicEnvironment(bullet= env._pybullet,number_of_segment=2)
-    env.add_harmony_box([0.5,0,0])
+    env.add_box([0.5,0,0])
     env.add_a_cube([0.5,0.1,0.1],[0.025,0.025,0.025],mass=1)
     env.add_a_cube([0.45,0.13,0.1],[0.025,0.025,0.025],mass=1,color=[0,1,0,1])
     env.add_a_cube([0.48,0.08,0.1],[0.025,0.025,0.025],mass=1,color=[1,0,1,1])
