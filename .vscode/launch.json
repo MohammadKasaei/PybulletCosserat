@@ -123,5 +123,13 @@
             "request": "launch",
             "module": "scripts.mini_spot_test"
         },
+        {
+            "name": "basic mppi",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "scripts.test_pybullet_MPPI"
+        },
+
+        
     ]
 }

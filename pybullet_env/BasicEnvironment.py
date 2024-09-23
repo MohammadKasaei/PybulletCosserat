@@ -32,7 +32,7 @@ class SoftRobotBasicEnvironment():
             self.plane_id = p.loadURDF('plane.urdf')
 
             self.bullet.configureDebugVisualizer(self.bullet.COV_ENABLE_GUI, 0)
-            self.bullet.resetDebugVisualizerCamera(cameraDistance=0.4, cameraYaw=180, cameraPitch=-35,
+            self.bullet.resetDebugVisualizerCamera(cameraDistance=0.7, cameraYaw=180, cameraPitch=-35,
                                      cameraTargetPosition=[0., 0, 0.1])
         
         else:

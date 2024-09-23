@@ -86,12 +86,7 @@ class SoftManipulatorEnv(gym.Env):
          
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
         
-        ### FK
-        # self.action_space = spaces.Box(low=np.array([-0.02,-0.02,0.0]), high=np.array([0.2,0.2,0.2]), dtype="float32")
-        # observation_bound = np.array([np.inf, np.inf, np.inf]) # l uy ux 
-
-        # self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
-        
+       
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]

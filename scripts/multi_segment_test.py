@@ -6,7 +6,7 @@ import numpy as np
 
 if __name__ == '__main__':
 
-    env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5)
+    env = SoftRobotBasicEnvironment(body_sphere_radius=0.02,number_of_segment=5,number_of_sphere=50)
     base_link_shape = env.bullet.createVisualShape(env.bullet.GEOM_BOX, halfExtents=[0.05, 0.05, 0.03], rgbaColor=[0.6, 0.6, 0.6, 1])
     base_link_pos, base_link_ori = env.bullet.multiplyTransforms([0,0,0.5], [0,0,0,1], [0,-0.0,0], [0,0,0,1])
     base_link_id    = env.bullet.createMultiBody(baseMass=0.0, baseCollisionShapeIndex=base_link_shape,
@@ -30,28 +30,29 @@ if __name__ == '__main__':
     state = 0
     while True:    
         t += dt
-       
+        
+        t = 3.7
 
-        sf_left_seg1_cable_1   = 0.005*np.sin(0.5*np.pi*t)
-        sf_left_seg1_cable_2   = 0.005*np.sin(0.5*np.pi*t)
-        sf_left_seg2_cable_1   = .004*np.sin(0.4*np.pi*t)
-        sf_left_seg2_cable_2   = .003*np.sin(0.4*np.pi*t)
-        sf_left_seg3_cable_0   = .001*np.sin(0.3*np.pi*t)
-        sf_left_seg3_cable_1   = .001*np.sin(0.3*np.pi*t)
-        sf_left_seg3_cable_2   = .001*np.sin(0.3*np.pi*t)
-        sf_left_seg4_cable_1   = .005*np.sin(0.2*np.pi*t)
-        sf_left_seg4_cable_2   = .005*np.sin(0.2*np.pi*t)
-        sf_left_seg5_cable_1   = .005*np.sin(0.1*np.pi*t)
-        sf_left_seg5_cable_2   = .005*np.sin(0.1*np.pi*t)
+        sf_left_seg1_cable_1   = 1 * 0.005*np.sin(0.5*np.pi*t)
+        sf_left_seg1_cable_2   = 0 * 0.005*np.sin(0.5*np.pi*t)
+        sf_left_seg2_cable_1   = 1 * .004*np.sin(0.4*np.pi*t)
+        sf_left_seg2_cable_2   = 0 * .003*np.sin(0.4*np.pi*t)
+        sf_left_seg3_cable_0   = 0 * .001*np.sin(0.3*np.pi*t)
+        sf_left_seg3_cable_1   = 1 * .001*np.sin(0.3*np.pi*t)
+        sf_left_seg3_cable_2   = 0 * .001*np.sin(0.3*np.pi*t)
+        sf_left_seg4_cable_1   = 0 * .005*np.sin(0.2*np.pi*t)
+        sf_left_seg4_cable_2   = 0 * .005*np.sin(0.2*np.pi*t)
+        sf_left_seg5_cable_1   = 1 * .005*np.sin(0.1*np.pi*t)
+        sf_left_seg5_cable_2   = 0 * .005*np.sin(0.1*np.pi*t)
         
         
         
         sf_left_gripper_pos    = np.abs(np.sin(0.1*np.pi*t))
          
-        shape, ode_sol = env.move_robot_ori(action=np.array([0.0, sf_left_seg1_cable_1, sf_left_seg1_cable_2, 
-                                            0.0, sf_left_seg2_cable_1, sf_left_seg2_cable_2,
+        shape, ode_sol = env.move_robot_ori(action=np.array([0.08, sf_left_seg1_cable_1, sf_left_seg1_cable_2, 
+                                            -0.02, sf_left_seg2_cable_1, sf_left_seg2_cable_2,
                                             sf_left_seg3_cable_0, sf_left_seg3_cable_1, sf_left_seg3_cable_2,
-                                            0.0, sf_left_seg4_cable_1, sf_left_seg4_cable_2, 
+                                            -0.02, sf_left_seg4_cable_1, sf_left_seg4_cable_2, 
                                             0.0, sf_left_seg5_cable_1, sf_left_seg5_cable_2]),
                                     base_pos=[0,0,0.5],base_orin = np.array([-np.pi/2,0,0]), camera_marker=False)
         

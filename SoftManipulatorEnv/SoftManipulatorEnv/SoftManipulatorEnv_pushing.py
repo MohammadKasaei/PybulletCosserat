@@ -65,12 +65,7 @@ class SoftManipulatorEnv(gym.Env):
         observation_bound = np.array([1, 1, 1]) # pos 
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
         
-        ### FK
-        # self.action_space = spaces.Box(low=np.array([-0.02,-0.02,0.0]), high=np.array([0.2,0.2,0.2]), dtype="float32")
-        # observation_bound = np.array([np.inf, np.inf, np.inf]) # l uy ux 
-
-        # self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
-        
+      
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]
@@ -100,18 +95,7 @@ class SoftManipulatorEnv(gym.Env):
                 # Calculate the direction from object1 to object2
                 touch += 1
                 self._env.apply_force(force_magnitude = 1, obj_id = self.obj_id)
-                # pos1, _ = self._env.bullet.getBasePositionAndOrientation(self._env._robot_bodies[-3])
-                # pos2, _ = self._env.bullet.getBasePositionAndOrientation(self.obj_id)
-                # direction = [pos2[i] - pos1[i] for i in range(3)]
-                
-                # # Normalize the direction vector
-                # norm = sum(x**2 for x in direction) ** 0.5
-                # direction = [x / norm for x in direction]
-                
-                # force_magnitude = 1  # Adjust this value as needed
-                # force = [force_magnitude * x for x in direction]
-                # self._env.bullet.applyExternalForce(self.obj_id, -1, force, [0, 0, 0],  self._env.bullet.WORLD_FRAME)
-                # self._env.bullet.stepSimulation()
+               
                     
         self.obj_pos = np.array(self._env.bullet.getBasePositionAndOrientation(self.obj_id)[0])
 
@@ -159,21 +143,6 @@ class SoftManipulatorEnv(gym.Env):
             self._env.bullet.stepSimulation()
 
         
-
-        # self.ol    = np.random.uniform(low= -0.03, high=0.04, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
-        
-        # self.ol    = np.random.uniform(low= -0.01, high=0.01, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.005, high=0.005, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.005, high=0.005, size=(1,))[0]
-        
-        # self.ol    = np.random.uniform(low= -0.005, high=0.005, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.003, high=0.003, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.003, high=0.003, size=(1,))[0]
-        
-        
-        
         if (self._gui): #Test env
             self._env._set_marker(self.desired_pos)
         
@@ -212,12 +181,6 @@ if __name__ =="__main__":
     num_cpu_core = 1
     max_epc = 500000
     
-    # from gym.envs.registration import register
-    # register(
-    #     id='SoftManipulatorEnv-v0',
-    #     entry_point='custom_env:SoftManipulatorEnv',
-    # )
-
     if (num_cpu_core == 1):
         sf_env = SoftManipulatorEnv()
     else:

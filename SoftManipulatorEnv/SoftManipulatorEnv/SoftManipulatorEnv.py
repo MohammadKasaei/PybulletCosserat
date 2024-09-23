@@ -44,9 +44,6 @@ class SoftManipulatorEnv(gym.Env):
                                                                    0.0, 0.0, 0.0]),
                                             base_pos=self._base_pos, base_orin = self._base_ori, camera_marker=False)
         
-        # self._env.add_a_cube([0.,0.0,0.01],[0.2,0.2,0.1],mass=1,color=[0.2,0.2,0.2,1])
-        # self._env.add_a_cube([0.02,0.0,0.2],[0.05,0.05,0.05],mass=0.01,color=[1,0,1,1])
-
         self._env.bullet.resetDebugVisualizerCamera(cameraDistance=0.75, cameraYaw=35, cameraPitch=-30, cameraTargetPosition=[0,0,0])
 
         self.reset()
@@ -65,12 +62,7 @@ class SoftManipulatorEnv(gym.Env):
         observation_bound = np.array([1, 1, 1]) # pos 
         self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
         
-        ### FK
-        # self.action_space = spaces.Box(low=np.array([-0.02,-0.02,0.0]), high=np.array([0.2,0.2,0.2]), dtype="float32")
-        # observation_bound = np.array([np.inf, np.inf, np.inf]) # l uy ux 
-
-        # self.observation_space = spaces.Box(low = -observation_bound, high = observation_bound, dtype="float32")
-        
+       
     def seed(self, seed=None):
         self.np_random, seed = gym.utils.seeding.np_random(seed)
         return [seed]
@@ -125,20 +117,6 @@ class SoftManipulatorEnv(gym.Env):
         
         for i in range(10):
             self._env.bullet.stepSimulation()
-
-        # self.ol    = np.random.uniform(low= -0.03, high=0.04, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.015, high=0.015, size=(1,))[0]
-        
-        # self.ol    = np.random.uniform(low= -0.01, high=0.01, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.005, high=0.005, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.005, high=0.005, size=(1,))[0]
-        
-        # self.ol    = np.random.uniform(low= -0.005, high=0.005, size=(1,))[0]
-        # self.ouy   = np.random.uniform(low=-0.003, high=0.003, size=(1,))[0]
-        # self.oux   = np.random.uniform(low=-0.003, high=0.003, size=(1,))[0]
-        
-        
         
         if (self._gui): #Test env
             self._env._set_marker(self.desired_pos)
@@ -177,13 +155,8 @@ if __name__ =="__main__":
     
     num_cpu_core = 1
     max_epc = 200000
-    
-    # from gym.envs.registration import register
-    # register(
-    #     id='SoftManipulatorEnv-v0',
-    #     entry_point='custom_env:SoftManipulatorEnv',
-    # )
-
+   
+   
     if (num_cpu_core == 1):
         sf_env = SoftManipulatorEnv()
     else:
